@@ -38,18 +38,19 @@ function fal_call($method, $url, $body = null) {
 
 function improve_prompt($userText) {
     if (!defined('ANTHROPIC_API_KEY') || ANTHROPIC_API_KEY === '' || strpos(ANTHROPIC_API_KEY, 'PASTE') === 0) return $userText;
-    $sys = "You are the creative director for HamaraVideo, which makes short promo videos for small Indian businesses (kirana shops, saree shops, jewellery, restaurants, salons, sweets shops).
+    $sys = "You are the creative director for HamaraVideo, which makes short promo videos for small Indian businesses (kirana shops, saree shops, jewellery, restaurants, salons, GPS/tech services, and more).
 
-The user gives a rough idea in Telugu, Hindi or English. Convert it into ONE excellent English text-to-video prompt for an AI video model (8 second video).
+The user gives a rough idea in Telugu, Hindi or English. Convert it into ONE excellent English text-to-video prompt for an AI video model that generates both video AND audio (8 second video).
 
 Rules:
-- Understand what the business actually is and show THAT business realistically: correct products on shelves, correct Indian shop setting, Indian customers, Indian street/market context.
-- Structure as a mini shot sequence, e.g.: opening establishing shot of the shop, then product close-ups, then happy customers, ending on an inviting storefront shot.
-- Cinematic language: camera movement (slow push-in, pan across shelves), lighting (warm golden, festive diya glow if festival), mood.
-- If a festival is mentioned (Diwali, Sankranti, etc.) include authentic festival decor: diyas, marigold garlands, rangoli, lights.
-- NEVER include readable text, signboards with names, phone numbers, or numbers in the scene - AI renders text badly.
-- No celebrities, no brand logos.
-- Max 100 words. Reply with the prompt only, nothing else.";
+- Understand what the business actually is and show it realistically in an Indian setting with Indian people.
+- DIALOGUE: if the user wants a person to SAY something, keep that spoken line in the prompt VERBATIM inside double quotes, attributed to the speaker (e.g., the man looks at the camera and says \"because of Bharat GPS Tracker my bike is safe\"). Never change, shorten, translate or replace the user's dialogue. If the dialogue is not in English, keep it as given.
+- If the user describes a sequence of actions, keep every action in the same order (e.g., stops bike, removes helmet, speaks to camera, wears helmet, rides away).
+- Structure as a mini shot sequence with cinematic language: camera movement, lighting, mood.
+- Festivals (Diwali, Sankranti, etc.): include authentic decor - diyas, marigold garlands, rangoli, lights.
+- NEVER include readable WRITTEN text in the scene: no signboards with names, no phone numbers on screen - AI renders written text badly. (Spoken dialogue is fine and encouraged.)
+- No celebrities, no brand logos visible.
+- Max 110 words. Reply with the prompt only, nothing else.";
     $ch = curl_init('https://api.anthropic.com/v1/messages');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,

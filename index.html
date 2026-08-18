@@ -339,7 +339,9 @@ async function startGeneration(){
     const j = await res.json();
     if(!res.ok || !j.request_id){
       if(res.status===403){ localStorage.removeItem('hv_access'); }
-      throw new Error(j.error || 'Submit failed');
+      let msg = j.error || 'Submit failed';
+      if(j.detail){ msg += ' — ' + JSON.stringify(j.detail).slice(0,300); }
+      throw new Error(msg);
     }
     pollStatus(j.request_id, access, Date.now());
   }catch(e){

@@ -15,7 +15,7 @@ $cfg = __DIR__ . '/config.local.php';
 if (!file_exists($cfg)) { http_response_code(500); echo json_encode(['error' => 'Server not configured. config.local.php missing.']); exit; }
 require $cfg;
 
-if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/kling-video/v2.5-turbo/standard/text-to-video');
+if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/kling-video/v3/standard/text-to-video');
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
 function fal_call($method, $url, $body = null) {

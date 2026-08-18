@@ -9,18 +9,28 @@ require __DIR__ . '/boot.php';
 
 if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/ltx-2.3/text-to-video/fast');
 if (!defined('FAL_MODEL_PREMIUM')) define('FAL_MODEL_PREMIUM', 'fal-ai/ltx-2.3/text-to-video');
+if (!defined('FAL_MODEL_PHOTO')) define('FAL_MODEL_PHOTO', 'fal-ai/ltx-2.3/image-to-video/fast');
 if (!defined('PREMIUM_CREDITS')) define('PREMIUM_CREDITS', 2);
 if (!defined('VIDEO_DURATION')) define('VIDEO_DURATION', 8);
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
 function tier_model($quality) {
-    return $quality === 'premium' ? FAL_MODEL_PREMIUM : FAL_MODEL;
+    if ($quality === 'premium') return FAL_MODEL_PREMIUM;
+    if ($quality === 'photo') return FAL_MODEL_PHOTO;
+    return FAL_MODEL;
 }
 function tier_credits($quality) {
     return $quality === 'premium' ? PREMIUM_CREDITS : 1;
 }
-function tier_payload($quality, $prompt, $aspect) {
-    // Both tiers are LTX-2.3 family (fast / pro) - same parameter format
+function tier_payload($quality, $prompt, $aspect, $imageUrl = null) {
+    if ($quality === 'photo') {
+        return [
+            'prompt' => $prompt,
+            'image_url' => $imageUrl,
+            'duration' => VIDEO_DURATION,
+        ];
+    }
+    // text-to-video (LTX fast / pro) - same parameter format
     return [
         'prompt' => $prompt,
         'duration' => VIDEO_DURATION,
@@ -55,7 +65,17 @@ function fal_call($method, $url, $body = null) {
 
 function improve_prompt($userText, $quality = 'standard') {
     if (!defined('ANTHROPIC_API_KEY') || ANTHROPIC_API_KEY === '' || strpos(ANTHROPIC_API_KEY, 'PASTE') === 0) return $userText;
-    $sys = "You are the creative director and script writer for HamaraVideo, making short promo videos for Indian businesses (shops, restaurants, salons, GPS/tech services, events).
+    if ($quality === 'photo') {
+        $sys = "You write motion prompts for an image-to-video AI. The user uploaded a REAL photo of their Indian shop, product or business and gives a rough idea (Telugu, Hindi or English) of the promo feel they want.
+
+Write ONE short English motion prompt (max 60 words) describing how the photo should come alive over " . VIDEO_DURATION . " seconds:
+- Keep the scene exactly as in the photo - do NOT add new people, objects or change the setting.
+- Subtle realistic motion only: slow cinematic camera push-in or gentle pan, lights twinkling or glowing warmly, fabric/product gently swaying, steam rising (food), soft festive sparkle if a festival is mentioned.
+- End on a steady, inviting final frame.
+- No spoken dialogue, no readable text overlays, no scene changes.
+Reply with the prompt only.";
+    } else {
+        $sys = "You are the creative director and script writer for HamaraVideo, making short promo videos for Indian businesses (shops, restaurants, salons, GPS/tech services, events).
 
 The user gives a rough idea in Telugu, Hindi or English. FIRST understand the real intent: What is the business? What is being promoted? Who are the characters (customer, staff, owner, rider)? Where does the scene happen? What must be said?
 
@@ -78,6 +98,7 @@ Rules:
 - NEVER include readable WRITTEN text on screen (signboards with names, phone numbers) - written text renders badly. Spoken dialogue is good.
 - No celebrities, no visible brand logos.
 - Max 120 words. Reply with the script-prompt only, nothing else.";
+    }
     $ch = curl_init('https://api.anthropic.com/v1/messages');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -116,8 +137,16 @@ if ($action === 'submit') {
         else out(['error' => 'Login required', 'auth' => false], 401);
     }
 
-    $quality = ($in['quality'] ?? '') === 'premium' ? 'premium' : 'standard';
+    $quality = in_array($in['quality'] ?? '', ['premium', 'photo']) ? $in['quality'] : 'standard';
     $needCredits = tier_credits($quality);
+
+    $imageUrl = null;
+    if ($quality === 'photo') {
+        $imageUrl = trim($in['image_url'] ?? '');
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $prefix = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/media/';
+        if (strpos($imageUrl, $prefix) !== 0) out(['error' => 'Please upload your photo first'], 400);
+    }
 
     $user = null;
     if (!$testMode) {
@@ -131,7 +160,7 @@ if ($action === 'submit') {
     $finalPrompt = improve_prompt($prompt, $quality);
     $model = tier_model($quality);
 
-    list($code, $res) = fal_call('POST', 'https://queue.fal.run/' . $model, tier_payload($quality, $finalPrompt, $aspect));
+    list($code, $res) = fal_call('POST', 'https://queue.fal.run/' . $model, tier_payload($quality, $finalPrompt, $aspect, $imageUrl));
     if (!($code >= 200 && $code < 300 && isset($res['request_id']))) {
         out(['error' => 'Generation submit failed', 'detail' => $res, 'http' => $code], 502);
     }
@@ -163,7 +192,7 @@ if ($action === 'status') {
         if (!(TEST_ACCESS_CODE !== '' && $access === TEST_ACCESS_CODE)) out(['error' => 'Login required', 'auth' => false], 401);
     }
 
-    $quality = ($_GET['quality'] ?? '') === 'premium' ? 'premium' : 'standard';
+    $quality = in_array($_GET['quality'] ?? '', ['premium', 'photo']) ? $_GET['quality'] : 'standard';
     $root = fal_app_root(tier_model($quality));
 
     list($code, $st) = fal_call('GET', 'https://queue.fal.run/' . $root . '/requests/' . $rid . '/status');

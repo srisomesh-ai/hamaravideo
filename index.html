@@ -159,7 +159,17 @@
     <textarea id="prompt" placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, పండుగ వాతావరణం"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px" id="qualityRow">
       <span class="fmt active" data-q="standard" style="flex:1;text-align:center;padding:8px">⚡ Standard<br><small style="opacity:.7">1 credit · fast</small></span>
-      <span class="fmt" data-q="premium" style="flex:1;text-align:center;padding:8px">✨ Premium<br><small style="opacity:.7">3 credits · best quality + dialogue</small></span>
+      <span class="fmt" data-q="premium" style="flex:1;text-align:center;padding:8px">✨ Premium<br><small style="opacity:.7">2 credits · sharper 1080p</small></span>
+      <span class="fmt" data-q="photo" style="flex:1;text-align:center;padding:8px">📸 My Photo<br><small style="opacity:.7">1 credit · your real shop</small></span>
+    </div>
+    <div id="photoBox" style="display:none;margin-top:10px">
+      <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+      <div id="photoPick" style="border:1px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:13.5px;cursor:pointer">📸 Tap to upload a photo of your shop or product</div>
+      <div id="photoPreviewWrap" style="display:none;position:relative">
+        <img id="photoPreview" style="width:100%;border-radius:12px;display:block">
+        <span id="photoRemove" style="position:absolute;top:8px;right:8px;background:rgba(20,29,56,.85);color:var(--cream);border-radius:99px;padding:5px 11px;font-size:12px;cursor:pointer">✕ Change</span>
+        <span id="photoStatus" style="position:absolute;bottom:8px;left:8px;background:rgba(20,29,56,.85);color:var(--marigold);border-radius:99px;padding:5px 11px;font-size:12px"></span>
+      </div>
     </div>
     <div class="prompt-foot">
       <div class="fmt-toggle">
@@ -404,20 +414,58 @@ const PLACEHOLDERS = {
   hi: "उदा: हमारी किराना दुकान का दिवाली ऑफर – सभी सामान पर 20% छूट, त्योहार का माहौल",
   en: "e.g. Diwali offer at my kirana shop - 20% off on all items, festive mood"
 };
+let currentLang = 'te';
 document.querySelectorAll('.lang-chip').forEach((c,i)=>{
   c.addEventListener('click',()=>{
     document.querySelectorAll('.lang-chip').forEach(x=>x.classList.remove('active'));
     c.classList.add('active');
-    $('prompt').placeholder = PLACEHOLDERS[['te','hi','en'][i]];
+    currentLang = ['te','hi','en'][i];
+    if(quality!=='photo') $('prompt').placeholder = PLACEHOLDERS[currentLang];
   });
 });
 let quality = 'standard';
+let photoUrl = '';
 document.querySelectorAll('#qualityRow .fmt').forEach(f=>{
   f.addEventListener('click',()=>{
     document.querySelectorAll('#qualityRow .fmt').forEach(x=>x.classList.remove('active'));
     f.classList.add('active'); quality = f.dataset.q;
-    $('genCost').textContent = quality==='premium' ? '3 credits' : '1 credit';
+    $('genCost').textContent = quality==='premium' ? '2 credits' : '1 credit';
+    $('photoBox').style.display = quality==='photo' ? 'block' : 'none';
+    $('prompt').placeholder = quality==='photo'
+      ? 'Describe the feel — e.g. Diwali offer mood, warm lights, festive'
+      : PLACEHOLDERS[currentLang];
   });
+});
+
+$('photoPick').addEventListener('click',()=>$('photoInput').click());
+$('photoRemove').addEventListener('click',()=>{
+  photoUrl=''; $('photoInput').value='';
+  $('photoPreviewWrap').style.display='none'; $('photoPick').style.display='block';
+});
+$('photoInput').addEventListener('change', async ()=>{
+  const file = $('photoInput').files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){ alert('Photo too large (max 8 MB)'); return; }
+  $('photoPreview').src = URL.createObjectURL(file);
+  $('photoPick').style.display='none';
+  $('photoPreviewWrap').style.display='block';
+  $('photoStatus').textContent='Uploading…';
+  photoUrl='';
+  try{
+    const fd = new FormData();
+    fd.append('photo', file);
+    if(!token && testAccess) fd.append('access', testAccess);
+    const headers = {};
+    if(token) headers['Authorization']='Bearer '+token;
+    const r = await fetch('api/upload.php',{method:'POST', headers, body: fd});
+    const j = await r.json();
+    if(!r.ok || !j.image_url) throw new Error(j.error||'Upload failed');
+    photoUrl = j.image_url;
+    $('photoStatus').textContent='✓ Ready';
+  }catch(e){
+    $('photoStatus').textContent='Upload failed';
+    alert(e.message);
+  }
 });
 document.querySelectorAll('.fmt-toggle .fmt').forEach(f=>{
   f.addEventListener('click',()=>{
@@ -472,6 +520,7 @@ $('genBtn').addEventListener('click', startGeneration);
 async function startGeneration(){
   const promptText = $('prompt').value.trim();
   if(promptText.length < 5){ alert('Please describe your video first.'); return; }
+  if(quality==='photo' && !photoUrl){ alert('Please upload your shop/product photo first.'); return; }
   if(!token && !testAccess){ openAuth(); return; }
 
   const genBtn = $('genBtn');
@@ -490,6 +539,7 @@ async function startGeneration(){
     const headers = {'Content-Type':'application/json'};
     if(token) headers['Authorization'] = 'Bearer '+token;
     const body = {prompt: promptText, aspect_ratio: ratio, quality};
+    if(quality==='photo') body.image_url = photoUrl;
     if(!token && testAccess) body.access = testAccess;
     const res = await fetch('api/video-proxy.php?action=submit',{method:'POST', headers, body: JSON.stringify(body)});
     const j = await res.json();

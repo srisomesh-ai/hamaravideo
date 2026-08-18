@@ -10,3 +10,4 @@ define('DB_PASS', '');
 define('FAL_MODEL_PREMIUM', 'fal-ai/ltx-2.3/text-to-video');
 define('PREMIUM_CREDITS', 2);
 define('VIDEO_DURATION', 8);
+define('FAL_MODEL_PHOTO', 'fal-ai/ltx-2.3/image-to-video/fast');

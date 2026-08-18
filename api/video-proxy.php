@@ -8,8 +8,8 @@
 require __DIR__ . '/boot.php';
 
 if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/ltx-2.3/text-to-video/fast');
-if (!defined('FAL_MODEL_PREMIUM')) define('FAL_MODEL_PREMIUM', 'fal-ai/veo3.1');
-if (!defined('PREMIUM_CREDITS')) define('PREMIUM_CREDITS', 3);
+if (!defined('FAL_MODEL_PREMIUM')) define('FAL_MODEL_PREMIUM', 'fal-ai/ltx-2.3/text-to-video');
+if (!defined('PREMIUM_CREDITS')) define('PREMIUM_CREDITS', 2);
 if (!defined('VIDEO_DURATION')) define('VIDEO_DURATION', 8);
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
@@ -20,18 +20,7 @@ function tier_credits($quality) {
     return $quality === 'premium' ? PREMIUM_CREDITS : 1;
 }
 function tier_payload($quality, $prompt, $aspect) {
-    if ($quality === 'premium') {
-        // Veo 3.1 parameter format
-        return [
-            'prompt' => $prompt,
-            'negative_prompt' => 'multiple people talking, two characters speaking the same line, repeated dialogue, garbled speech, wrong gender greeting, extra unexpected characters appearing, on-screen text, subtitles, captions, watermark, distorted faces',
-            'duration' => VIDEO_DURATION . 's',
-            'aspect_ratio' => $aspect,
-            'resolution' => '720p',
-            'generate_audio' => true,
-            'auto_fix' => true,
-        ];
-    }
+    // Both tiers are LTX-2.3 family (fast / pro) - same parameter format
     return [
         'prompt' => $prompt,
         'duration' => VIDEO_DURATION,
@@ -77,10 +66,9 @@ Each beat must contain clear action or a clear spoken line. The final beat shoul
 SIMPLICITY RULES (critical - AI video fails when overloaded):
 - ONE location, ONE continuous scene. No scene changes.
 - MAXIMUM 2 people visible. Never introduce characters the user didn't mention.
-- ONLY ONE PERSON SPEAKS in the entire video. Explicitly state that the other person stays silent and only reacts (smiles, nods, points). Never give lines to two people.
-- Lock each character's gender and appearance explicitly at the start of the script (e.g., 'a male shopkeeper in his 30s', 'a female customer in a saree') and keep greetings consistent with gender. If the user did not specify gender, use gender-neutral dialogue (e.g., \"Welcome! How may I help you?\" - never \"sir\"/\"madam\" unless the user wrote it).
-- MAXIMUM 3 physical actions total across the whole video. If the user listed more actions, keep only the 3 most important ones (always keep the dialogue moment).
-- Dialogue maximum 12 words. Write it as: [character] looks directly into the camera and says exactly: \"...\" - and keep the user's words VERBATIM, never changed, translated or shortened.
+- PREFER NO SPOKEN DIALOGUE. AI speech is unreliable. Default to visual storytelling with ambient sound: festive music feel, shop ambience, product beauty, genuine smiles and gestures (welcoming namaste, showing a product proudly, happy nod). This style produces the best videos.
+- If the user EXPLICITLY wrote a line to be spoken, keep ONE short line only (max 10 words), VERBATIM in double quotes, spoken by ONE person; the other person stays silent and only reacts.
+- MAXIMUM 3 physical actions total across the whole video.
 - One simple camera instruction only (e.g., static medium shot, or slow push-in). No complex camera moves.
 
 Rules:

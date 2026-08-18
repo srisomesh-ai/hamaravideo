@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HamaraVideo — AI videos for your business</title>
+<meta name="description" content="Type in Telugu, Hindi or English. Get a ready promo video for your shop or festival offer. Pay per video with UPI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;700;800&family=Anek+Telugu:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14122B;        /* night sky */
+    --card:#221E45;       /* card surface */
+    --card2:#2B2656;      /* raised surface */
+    --marigold:#FFB020;   /* primary action */
+    --rani:#E84E8A;       /* accent / festive */
+    --cream:#FFF6E9;      /* text on dark */
+    --muted:#A9A3CC;      /* secondary text */
+    --line:#39336B;
+    --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Public Sans',system-ui,sans-serif;
+    background:var(--ink);
+    color:var(--cream);
+    min-height:100vh;
+    max-width:480px;
+    margin:0 auto;
+    padding-bottom:84px; /* space for bottom nav */
+  }
+  .display{font-family:'Anek Latin','Anek Telugu',sans-serif}
+
+  /* ===== Header ===== */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 18px 8px;
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{
+    width:38px;height:38px;border-radius:12px;
+    background:linear-gradient(135deg,var(--marigold),var(--rani));
+    display:grid;place-items:center;
+    font-family:'Anek Latin';font-weight:800;font-size:20px;color:var(--ink);
+  }
+  .brand h1{font-family:'Anek Latin';font-weight:800;font-size:21px;letter-spacing:.2px}
+  .brand h1 span{color:var(--marigold)}
+  .credits-pill{
+    display:flex;align-items:center;gap:6px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:7px 13px;
+    font-size:13px;font-weight:600;color:var(--marigold);
+  }
+
+  /* ===== Hero prompt ===== */
+  .hero{padding:14px 18px 6px}
+  .hero h2{
+    font-family:'Anek Latin','Anek Telugu';font-weight:800;
+    font-size:28px;line-height:1.15;margin-bottom:4px;
+  }
+  .hero h2 em{font-style:normal;color:var(--marigold)}
+  .hero p.sub{color:var(--muted);font-size:14px;margin-bottom:14px}
+
+  .lang-row{display:flex;gap:8px;margin-bottom:12px}
+  .lang-chip{
+    font-family:'Anek Telugu','Anek Latin';
+    border:1px solid var(--line);background:var(--card);
+    color:var(--muted);border-radius:999px;
+    padding:7px 15px;font-size:14px;font-weight:500;cursor:pointer;
+  }
+  .lang-chip.active{
+    background:var(--cream);color:var(--ink);border-color:var(--cream);font-weight:700;
+  }
+
+  .prompt-card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:14px;
+  }
+  .prompt-card textarea{
+    width:100%;background:transparent;border:none;outline:none;resize:none;
+    color:var(--cream);font-family:'Anek Telugu','Public Sans';font-size:16px;
+    min-height:74px;line-height:1.5;
+  }
+  .prompt-card textarea::placeholder{color:#6F68A0}
+  .prompt-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .fmt-toggle{display:flex;gap:6px}
+  .fmt{
+    font-size:12px;color:var(--muted);border:1px solid var(--line);
+    border-radius:8px;padding:5px 9px;cursor:pointer;
+  }
+  .fmt.active{color:var(--ink);background:var(--marigold);border-color:var(--marigold);font-weight:700}
+  .gen-btn{
+    display:flex;align-items:center;gap:8px;
+    background:var(--marigold);color:var(--ink);
+    font-family:'Anek Latin';font-weight:800;font-size:16px;
+    border:none;border-radius:12px;padding:11px 20px;cursor:pointer;
+  }
+  .gen-btn small{font-family:'Public Sans';font-weight:600;font-size:11px;opacity:.75}
+
+  /* ===== Templates ===== */
+  .section-label{
+    padding:22px 18px 10px;display:flex;align-items:baseline;justify-content:space-between;
+  }
+  .section-label h3{font-family:'Anek Latin';font-weight:700;font-size:17px}
+  .section-label a{color:var(--rani);font-size:13px;text-decoration:none;font-weight:600}
+  .tpl-scroll{
+    display:flex;gap:12px;overflow-x:auto;padding:2px 18px 6px;
+    scrollbar-width:none;
+  }
+  .tpl-scroll::-webkit-scrollbar{display:none}
+  .tpl{
+    min-width:150px;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);background:var(--card);flex-shrink:0;
+  }
+  .tpl .thumb{
+    height:96px;display:grid;place-items:center;font-size:34px;
+  }
+  .t-diwali .thumb{background:linear-gradient(160deg,#3B1D5E,#7A2E8E)}
+  .t-shop .thumb{background:linear-gradient(160deg,#0E4D64,#1B7F8E)}
+  .t-arrival .thumb{background:linear-gradient(160deg,#7E2A44,#C2456A)}
+  .t-event .thumb{background:linear-gradient(160deg,#5C4A0E,#A67C1B)}
+  .tpl .info{padding:10px 12px}
+  .tpl .info b{font-family:'Anek Latin';font-size:14px;font-weight:700;display:block}
+  .tpl .info span{font-size:12px;color:var(--muted)}
+
+  /* ===== How it works ===== */
+  .steps{padding:6px 18px}
+  .step{
+    display:flex;gap:14px;align-items:flex-start;
+    padding:13px 0;border-bottom:1px dashed var(--line);
+  }
+  .step:last-child{border-bottom:none}
+  .step .dot{
+    width:34px;height:34px;border-radius:10px;flex-shrink:0;
+    background:var(--card2);border:1px solid var(--line);
+    display:grid;place-items:center;font-size:16px;
+  }
+  .step b{font-family:'Anek Latin';font-size:15px;display:block;margin-bottom:2px}
+  .step span{font-size:13px;color:var(--muted);line-height:1.45}
+
+  /* ===== Pricing ===== */
+  .price-wrap{padding:4px 18px 8px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .price{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px 14px;text-align:center;position:relative;
+  }
+  .price.best{border-color:var(--marigold)}
+  .price .tag{
+    position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+    background:var(--marigold);color:var(--ink);font-size:11px;font-weight:700;
+    border-radius:999px;padding:3px 10px;white-space:nowrap;
+  }
+  .price .amt{font-family:'Anek Latin';font-weight:800;font-size:26px}
+  .price .amt small{font-size:13px;color:var(--muted);font-weight:500}
+  .price p{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .upi-note{
+    grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--muted);
+  }
+  .upi-note b{color:var(--cream)}
+
+  /* ===== Sample result mock ===== */
+  .result-mock{margin:10px 18px 6px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .result-mock .bar{
+    height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:10px 0 6px;
+  }
+  .result-mock .bar i{
+    display:block;height:100%;width:64%;
+    background:linear-gradient(90deg,var(--marigold),var(--rani));
+  }
+  .result-mock b{font-family:'Anek Latin';font-size:15px}
+  .result-mock span{font-size:12.5px;color:var(--muted)}
+
+  /* ===== Bottom nav ===== */
+  nav{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:480px;
+    background:rgba(20,18,43,.92);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;padding:10px 0 max(10px, env(safe-area-inset-bottom));
+  }
+  nav a{
+    color:var(--muted);text-decoration:none;font-size:11px;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+  }
+  nav a.active{color:var(--marigold)}
+  nav a .ico{font-size:19px}
+
+  .sample-banner{
+    background:var(--rani);color:#fff;text-align:center;
+    font-size:12px;font-weight:600;padding:6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="sample-banner">DESIGN SAMPLE — for approval only, buttons not wired yet</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">▶</div>
+    <h1>Hamara<span>Video</span></h1>
+  </div>
+  <div class="credits-pill">🪙 3 credits</div>
+</header>
+
+<section class="hero">
+  <h2 class="display">Mee business ki<br><em>AI video</em> — 2 nimishallo</h2>
+  <p class="sub">Type your idea in your language. We make a ready-to-share WhatsApp video.</p>
+
+  <div class="lang-row">
+    <button class="lang-chip active">తెలుగు</button>
+    <button class="lang-chip">हिंदी</button>
+    <button class="lang-chip">English</button>
+  </div>
+
+  <div class="prompt-card">
+    <textarea placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, షాప్ పేరు శ్రీ లక్ష్మి స్టోర్స్, ఫోన్ 9876543210"></textarea>
+    <div class="prompt-foot">
+      <div class="fmt-toggle">
+        <span class="fmt active">9:16 Status</span>
+        <span class="fmt">1:1 Post</span>
+      </div>
+      <button class="gen-btn">Generate <small>1 credit</small></button>
+    </div>
+  </div>
+</section>
+
+<div class="section-label">
+  <h3 class="display">Ready templates</h3>
+  <a href="#">All →</a>
+</div>
+<div class="tpl-scroll">
+  <div class="tpl t-diwali"><div class="thumb">🪔</div><div class="info"><b>Diwali Offer</b><span>Festival discount promo</span></div></div>
+  <div class="tpl t-shop"><div class="thumb">🏪</div><div class="info"><b>Shop Promo</b><span>Introduce your shop</span></div></div>
+  <div class="tpl t-arrival"><div class="thumb">🛍️</div><div class="info"><b>New Arrival</b><span>New stock announcement</span></div></div>
+  <div class="tpl t-event"><div class="thumb">🎉</div><div class="info"><b>Event Invite</b><span>Function / opening invite</span></div></div>
+</div>
+
+<div class="section-label"><h3 class="display">Your video is being made</h3></div>
+<div class="result-mock">
+  <b>Diwali offer — Sri Lakshmi Stores</b><br>
+  <span>Generating… we'll also send the link on WhatsApp when ready.</span>
+  <div class="bar"><i></i></div>
+  <span>Step 2 of 3 · Creating scenes</span>
+</div>
+
+<div class="section-label"><h3 class="display">How it works</h3></div>
+<div class="steps">
+  <div class="step"><div class="dot">✍️</div><div><b>Type your offer</b><span>Any language — Telugu, Hindi or English. Our AI writes the perfect video script for you.</span></div></div>
+  <div class="step"><div class="dot">🎬</div><div><b>AI makes the video</b><span>Cinematic video with your shop name and phone number on screen. Ready in about 2 minutes.</span></div></div>
+  <div class="step"><div class="dot">📲</div><div><b>Share on WhatsApp</b><span>Download in Status size (9:16) and send to all your customers instantly.</span></div></div>
+</div>
+
+<div class="section-label"><h3 class="display">Simple pricing</h3></div>
+<div class="price-wrap">
+  <div class="price">
+    <div class="amt">₹49<small> / 1 video</small></div>
+    <p>Try it once</p>
+  </div>
+  <div class="price best">
+    <div class="tag">Most popular</div>
+    <div class="amt">₹199<small> / 5 videos</small></div>
+    <p>₹39.8 per video</p>
+  </div>
+  <div class="upi-note">Pay with any UPI app — <b>GPay · PhonePe · Paytm</b>. First video free with watermark.</div>
+</div>
+
+<nav>
+  <a href="#" class="active"><span class="ico">🏠</span>Home</a>
+  <a href="#"><span class="ico">🎬</span>My Videos</a>
+  <a href="#"><span class="ico">🪙</span>Credits</a>
+  <a href="#"><span class="ico">👤</span>Account</a>
+</nav>
+
+</body>
+</html>

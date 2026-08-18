@@ -1,0 +1,8 @@
+<?php
+// Copy to config.local.php on Hostinger. NEVER commit config.local.php.
+define('FAL_API_KEY', 'PASTE_FAL_KEY_HERE');
+define('ANTHROPIC_API_KEY', 'PASTE_CLAUDE_KEY_HERE');
+define('DB_HOST', 'localhost');
+define('DB_NAME', '');
+define('DB_USER', '');
+define('DB_PASS', '');

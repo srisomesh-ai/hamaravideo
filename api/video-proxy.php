@@ -44,6 +44,29 @@ function fal_app_root($model) {
     return $parts[0] . '/' . $parts[1];
 }
 
+function find_video_url($data) {
+    // known shapes first
+    $candidates = [
+        $data['video']['url'] ?? null,
+        $data['output']['video']['url'] ?? null,
+        $data['videos'][0]['url'] ?? null,
+        $data['video_url'] ?? null,
+        $data['output']['video_url'] ?? null,
+    ];
+    foreach ($candidates as $c) if (is_string($c) && $c !== '') return $c;
+    // recursive fallback: first http(s) string that looks like a video file
+    $stack = [$data];
+    while ($stack) {
+        $cur = array_pop($stack);
+        if (is_array($cur)) {
+            foreach ($cur as $v) $stack[] = $v;
+        } elseif (is_string($cur) && preg_match('#^https?://#', $cur) && preg_match('#\.(mp4|webm|mov)(\?|$)#i', $cur)) {
+            return $cur;
+        }
+    }
+    return null;
+}
+
 function fal_call($method, $url, $body = null) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -200,7 +223,7 @@ if ($action === 'status') {
 
     if ($status === 'COMPLETED') {
         list($c2, $result) = fal_call('GET', 'https://queue.fal.run/' . $root . '/requests/' . $rid);
-        $videoUrl = $result['video']['url'] ?? ($result['output']['video']['url'] ?? null);
+        $videoUrl = find_video_url($result);
         if ($uid !== null && $videoUrl) {
             $up = db()->prepare('UPDATE jobs SET status = "COMPLETED", video_url = ? WHERE fal_request_id = ? AND user_id = ?');
             $up->execute([$videoUrl, $rid, $uid]);

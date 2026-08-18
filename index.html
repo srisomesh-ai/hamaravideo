@@ -574,7 +574,7 @@ function pollStatus(rid, startedAt, q){
       if(j.status==='COMPLETED'){
         clearInterval(polling);
         if(j.video_url){ showVideo(j.video_url); }
-        else { fail('Video ready but URL missing. Contact support.'); }
+        else { fail('Video ready but URL missing — ' + (j.result ? JSON.stringify(j.result).slice(0,300) : 'no detail')); }
       } else if(j.status==='FAILED' || j.status==='ERROR'){
         clearInterval(polling);
         fail('Generation failed. Your credit has been returned.');

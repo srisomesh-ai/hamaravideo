@@ -1,0 +1,16 @@
+:root{--ink:#141D38;--card:#1C2747;--sun:#FCDB32;--cream:#F8F6EC;--muted:#93A0C4;--line:#2C3A63}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Public Sans',system-ui,sans-serif;background:var(--ink);color:var(--cream);max-width:760px;margin:0 auto;padding:24px 20px 60px;line-height:1.65}
+a{color:var(--sun)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+.brand .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#FCDB32,#E3BE13);display:grid;place-items:center;font-family:'Anek Latin';font-weight:800;color:var(--ink);font-size:18px}
+.brand b{font-family:'Anek Latin';font-size:19px;font-weight:800}
+.brand b span{color:var(--sun)}
+h1{font-family:'Anek Latin';font-size:26px;font-weight:800;margin-bottom:4px}
+.updated{color:var(--muted);font-size:13px;margin-bottom:24px}
+h2{font-family:'Anek Latin';font-size:18px;font-weight:700;margin:26px 0 8px;color:var(--sun)}
+p{margin-bottom:12px;font-size:15px}
+ul{margin:0 0 12px 20px}
+li{margin-bottom:6px;font-size:15px}
+.foot{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.foot a{margin-right:14px}

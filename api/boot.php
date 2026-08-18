@@ -12,6 +12,9 @@ if (!defined('APP_SECRET')) define('APP_SECRET', 'change-me-in-config');
 function db() {
     static $pdo = null;
     if ($pdo === null) {
+        if (!defined('DB_HOST') || !defined('DB_NAME') || !defined('DB_USER') || !defined('DB_PASS') || DB_NAME === '') {
+            http_response_code(500); echo json_encode(['error' => 'Database not configured yet. Add DB_ settings in config.local.php']); exit;
+        }
         try {
             $pdo = new PDO(
                 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',

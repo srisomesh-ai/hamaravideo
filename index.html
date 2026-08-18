@@ -126,6 +126,11 @@
   .sheet .switch{text-align:center;margin-top:12px;font-size:13.5px;color:var(--muted)}
   .sheet .switch a{color:var(--marigold);cursor:pointer;font-weight:600}
   .sheet .err{color:#FF8A8A;font-size:13px;margin-bottom:8px;display:none}
+  .sheet select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--cream);font-size:16px;padding:13px 14px;margin-bottom:10px;outline:none;appearance:none}
+  .sheet label{display:block;font-size:12.5px;color:var(--muted);margin:2px 2px 6px}
+  .chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .chip-group .gchip{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:7px 14px;font-size:13.5px;cursor:pointer}
+  .chip-group .gchip.active{background:var(--marigold);color:var(--ink);border-color:var(--marigold);font-weight:700}
 </style>
 </head>
 <body>
@@ -240,6 +245,43 @@
   <a data-view="account"><span class="ico">👤</span>Account</a>
 </nav>
 
+<!-- ============ GUIDED TEMPLATE SHEET ============ -->
+<div class="overlay" id="tplOverlay">
+  <div class="sheet">
+    <h3 class="display" id="gTitle">Make your video</h3>
+    <p>Fill these — we'll build the perfect video description for you.</p>
+
+    <label>Business / shop name</label>
+    <input id="gName" type="text" placeholder="e.g. Sri Lakshmi Stores">
+
+    <label>Business type</label>
+    <select id="gType">
+      <option value="kirana / grocery shop">Kirana / General store</option>
+      <option value="clothes and saree shop">Clothes / Sarees</option>
+      <option value="jewellery shop">Jewellery</option>
+      <option value="mobile and electronics shop">Mobiles / Electronics</option>
+      <option value="restaurant / food">Restaurant / Food</option>
+      <option value="beauty salon">Salon / Beauty</option>
+      <option value="sweet shop">Sweets / Bakery</option>
+      <option value="furniture shop">Furniture</option>
+      <option value="shop">Other</option>
+    </select>
+
+    <label>Your offer (optional)</label>
+    <input id="gOffer" type="text" placeholder="e.g. 20% off on all items">
+
+    <label>Video style</label>
+    <div class="chip-group" id="gStyle">
+      <span class="gchip active" data-v="festive lights, diyas, warm golden glow, celebration">✨ Festive</span>
+      <span class="gchip" data-v="modern bright shop interior, clean premium look">🏬 Modern</span>
+      <span class="gchip" data-v="traditional Indian decor, flowers, rangoli, cultural warmth">🌺 Traditional</span>
+      <span class="gchip" data-v="luxury cinematic feel, elegant slow camera, rich colors">💎 Luxury</span>
+    </div>
+
+    <button class="primary" id="gDone">Create my video description</button>
+  </div>
+</div>
+
 <!-- ============ AUTH SHEET ============ -->
 <div class="overlay" id="authOverlay">
   <div class="sheet">
@@ -312,13 +354,21 @@ async function refreshMe(){
   }catch(e){}
 }
 
+async function fetchJSON(url, opts){
+  const r = await fetch(url, opts);
+  const text = await r.text();
+  let j;
+  try{ j = JSON.parse(text); }
+  catch(e){ throw new Error('Server error: ' + text.replace(/<[^>]*>/g,'').slice(0,140)); }
+  if(!r.ok) throw new Error(j.error || 'Request failed');
+  return j;
+}
+
 $('loginBtn').onclick = async ()=>{
   $('loginErr').style.display='none';
   try{
-    const r = await fetch('api/auth.php?action=login',{method:'POST',headers:{'Content-Type':'application/json'},
+    const j = await fetchJSON('api/auth.php?action=login',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({mobile:$('loginMobile').value, pin:$('loginPin').value})});
-    const j = await r.json();
-    if(!r.ok) throw new Error(j.error||'Login failed');
     setUser(j.user, j.token); closeAuth();
   }catch(e){ $('loginErr').textContent=e.message; $('loginErr').style.display='block'; }
 };
@@ -326,10 +376,8 @@ $('loginBtn').onclick = async ()=>{
 $('regBtn').onclick = async ()=>{
   $('regErr').style.display='none';
   try{
-    const r = await fetch('api/auth.php?action=register',{method:'POST',headers:{'Content-Type':'application/json'},
+    const j = await fetchJSON('api/auth.php?action=register',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({name:$('regName').value, mobile:$('regMobile').value, pin:$('regPin').value})});
-    const j = await r.json();
-    if(!r.ok) throw new Error(j.error||'Could not create account');
     setUser(j.user, j.token); closeAuth();
   }catch(e){ $('regErr').textContent=e.message; $('regErr').style.display='block'; }
 };
@@ -361,8 +409,43 @@ document.querySelectorAll('.fmt').forEach(f=>{
     f.classList.add('active'); ratio = f.dataset.ratio;
   });
 });
+/* ---------- guided templates ---------- */
+const OCCASIONS = {
+  'Diwali Offer':   'Diwali festival celebration, glowing diyas and lights',
+  'Shop Promo':     'grand shop promotion, welcoming happy customers',
+  'New Arrival':    'exciting new stock arrival reveal',
+  'Event Invite':   'grand opening celebration with ribbon cutting and flowers'
+};
+let gOccasion = '';
 document.querySelectorAll('.tpl').forEach(t=>{
-  t.addEventListener('click',()=>{ $('prompt').value = t.dataset.fill; $('prompt').focus(); window.scrollTo({top:0,behavior:'smooth'}); });
+  t.addEventListener('click',()=>{
+    const title = t.querySelector('.info b').textContent;
+    gOccasion = OCCASIONS[title] || '';
+    $('gTitle').textContent = title;
+    $('tplOverlay').classList.add('open');
+  });
+});
+$('tplOverlay').addEventListener('click',e=>{ if(e.target===$('tplOverlay')) $('tplOverlay').classList.remove('open'); });
+document.querySelectorAll('#gStyle .gchip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('#gStyle .gchip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+  });
+});
+$('gDone').addEventListener('click',()=>{
+  const name = $('gName').value.trim();
+  const type = $('gType').value;
+  const offer = $('gOffer').value.trim();
+  const style = document.querySelector('#gStyle .gchip.active').dataset.v;
+  let parts = [];
+  parts.push('Promotional video for ' + (name ? name + ', a ' : 'a ') + type + ' in India');
+  parts.push(gOccasion);
+  if(offer) parts.push('special offer: ' + offer);
+  parts.push(style);
+  $('prompt').value = parts.filter(Boolean).join('. ') + '.';
+  $('tplOverlay').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+  $('prompt').focus();
 });
 
 /* ---------- generation ---------- */

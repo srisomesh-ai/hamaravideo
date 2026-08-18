@@ -8,12 +8,39 @@
 require __DIR__ . '/boot.php';
 
 if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/ltx-2.3/text-to-video/fast');
+if (!defined('FAL_MODEL_PREMIUM')) define('FAL_MODEL_PREMIUM', 'fal-ai/veo3.1/fast');
+if (!defined('PREMIUM_CREDITS')) define('PREMIUM_CREDITS', 3);
 if (!defined('VIDEO_DURATION')) define('VIDEO_DURATION', 8);
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
+function tier_model($quality) {
+    return $quality === 'premium' ? FAL_MODEL_PREMIUM : FAL_MODEL;
+}
+function tier_credits($quality) {
+    return $quality === 'premium' ? PREMIUM_CREDITS : 1;
+}
+function tier_payload($quality, $prompt, $aspect) {
+    if ($quality === 'premium') {
+        // Veo 3.1 fast parameter format
+        return [
+            'prompt' => $prompt,
+            'duration' => VIDEO_DURATION . 's',
+            'aspect_ratio' => $aspect,
+            'resolution' => '720p',
+            'generate_audio' => true,
+            'auto_fix' => true,
+        ];
+    }
+    return [
+        'prompt' => $prompt,
+        'duration' => VIDEO_DURATION,
+        'aspect_ratio' => $aspect,
+    ];
+}
+
 // Fal queue quirk: submit uses the full model path, but status/result use only the app root (owner/app)
-function fal_app_root() {
-    $parts = explode('/', FAL_MODEL);
+function fal_app_root($model) {
+    $parts = explode('/', $model);
     return $parts[0] . '/' . $parts[1];
 }
 
@@ -89,22 +116,22 @@ if ($action === 'submit') {
         else out(['error' => 'Login required', 'auth' => false], 401);
     }
 
+    $quality = ($in['quality'] ?? '') === 'premium' ? 'premium' : 'standard';
+    $needCredits = tier_credits($quality);
+
     $user = null;
     if (!$testMode) {
         $st = db()->prepare('SELECT * FROM users WHERE id = ?');
         $st->execute([$uid]);
         $user = $st->fetch();
         if (!$user) out(['error' => 'Login required', 'auth' => false], 401);
-        if ((int)$user['credits'] < 1) out(['error' => 'No credits left. Please buy a pack.', 'no_credits' => true], 402);
+        if ((int)$user['credits'] < $needCredits) out(['error' => 'Not enough credits (' . $needCredits . ' needed). Please buy a pack.', 'no_credits' => true], 402);
     }
 
     $finalPrompt = improve_prompt($prompt);
+    $model = tier_model($quality);
 
-    list($code, $res) = fal_call('POST', 'https://queue.fal.run/' . FAL_MODEL, [
-        'prompt' => $finalPrompt,
-        'duration' => VIDEO_DURATION,
-        'aspect_ratio' => $aspect,
-    ]);
+    list($code, $res) = fal_call('POST', 'https://queue.fal.run/' . $model, tier_payload($quality, $finalPrompt, $aspect));
     if (!($code >= 200 && $code < 300 && isset($res['request_id']))) {
         out(['error' => 'Generation submit failed', 'detail' => $res, 'http' => $code], 502);
     }
@@ -114,15 +141,15 @@ if ($action === 'submit') {
         $pdo = db();
         $pdo->beginTransaction();
         try {
-            $pdo->prepare('UPDATE users SET credits = credits - 1 WHERE id = ? AND credits >= 1')->execute([$uid]);
-            $ins = $pdo->prepare('INSERT INTO jobs (user_id, prompt, used_prompt, aspect, fal_request_id, status) VALUES (?,?,?,?,?,"SUBMITTED")');
-            $ins->execute([$uid, $prompt, $finalPrompt, $aspect, $res['request_id']]);
+            $pdo->prepare('UPDATE users SET credits = credits - ? WHERE id = ? AND credits >= ?')->execute([$needCredits, $uid, $needCredits]);
+            $ins = $pdo->prepare('INSERT INTO jobs (user_id, prompt, used_prompt, aspect, fal_request_id, status, credit_charged) VALUES (?,?,?,?,?,"SUBMITTED",?)');
+            $ins->execute([$uid, $prompt, $finalPrompt, $aspect, $res['request_id'], $needCredits]);
             $jobId = (int)$pdo->lastInsertId();
             $pdo->commit();
         } catch (Exception $e) { $pdo->rollBack(); }
     }
 
-    out(['request_id' => $res['request_id'], 'job_id' => $jobId, 'used_prompt' => $finalPrompt]);
+    out(['request_id' => $res['request_id'], 'job_id' => $jobId, 'used_prompt' => $finalPrompt, 'quality' => $quality, 'credits_used' => $testMode ? 0 : $needCredits]);
 }
 
 if ($action === 'status') {
@@ -136,11 +163,14 @@ if ($action === 'status') {
         if (!(TEST_ACCESS_CODE !== '' && $access === TEST_ACCESS_CODE)) out(['error' => 'Login required', 'auth' => false], 401);
     }
 
-    list($code, $st) = fal_call('GET', 'https://queue.fal.run/' . fal_app_root() . '/requests/' . $rid . '/status');
+    $quality = ($_GET['quality'] ?? '') === 'premium' ? 'premium' : 'standard';
+    $root = fal_app_root(tier_model($quality));
+
+    list($code, $st) = fal_call('GET', 'https://queue.fal.run/' . $root . '/requests/' . $rid . '/status');
     $status = $st['status'] ?? 'UNKNOWN';
 
     if ($status === 'COMPLETED') {
-        list($c2, $result) = fal_call('GET', 'https://queue.fal.run/' . fal_app_root() . '/requests/' . $rid);
+        list($c2, $result) = fal_call('GET', 'https://queue.fal.run/' . $root . '/requests/' . $rid);
         $videoUrl = $result['video']['url'] ?? ($result['output']['video']['url'] ?? null);
         if ($uid !== null && $videoUrl) {
             $up = db()->prepare('UPDATE jobs SET status = "COMPLETED", video_url = ? WHERE fal_request_id = ? AND user_id = ?');
@@ -151,7 +181,7 @@ if ($action === 'status') {
 
     if (in_array($status, ['FAILED', 'ERROR'])) {
         if ($uid !== null) {
-            // refund credit once
+            // refund charged credits once
             $pdo = db();
             $pdo->beginTransaction();
             try {
@@ -160,7 +190,7 @@ if ($action === 'status') {
                 $job = $q->fetch();
                 if ($job && !$job['credit_refunded'] && $job['status'] !== 'FAILED') {
                     $pdo->prepare('UPDATE jobs SET status = "FAILED", credit_refunded = 1 WHERE id = ?')->execute([$job['id']]);
-                    $pdo->prepare('UPDATE users SET credits = credits + 1 WHERE id = ?')->execute([$uid]);
+                    $pdo->prepare('UPDATE users SET credits = credits + ? WHERE id = ?')->execute([(int)$job['credit_charged'], $uid]);
                 }
                 $pdo->commit();
             } catch (Exception $e) { $pdo->rollBack(); }

@@ -6,3 +6,7 @@ define('DB_HOST', 'localhost');
 define('DB_NAME', '');
 define('DB_USER', '');
 define('DB_PASS', '');
+// Quality tiers
+define('FAL_MODEL_PREMIUM', 'fal-ai/veo3.1/fast');
+define('PREMIUM_CREDITS', 3);
+define('VIDEO_DURATION', 8);

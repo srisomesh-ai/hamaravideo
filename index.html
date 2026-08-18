@@ -157,12 +157,16 @@
 
   <div class="prompt-card">
     <textarea id="prompt" placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, పండుగ వాతావరణం"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px" id="qualityRow">
+      <span class="fmt active" data-q="standard" style="flex:1;text-align:center;padding:8px">⚡ Standard<br><small style="opacity:.7">1 credit · fast</small></span>
+      <span class="fmt" data-q="premium" style="flex:1;text-align:center;padding:8px">✨ Premium<br><small style="opacity:.7">3 credits · best quality + dialogue</small></span>
+    </div>
     <div class="prompt-foot">
       <div class="fmt-toggle">
         <span class="fmt active" data-ratio="9:16">9:16 Status</span>
         <span class="fmt" data-ratio="1:1">1:1 Post</span>
       </div>
-      <button class="gen-btn" id="genBtn">Generate <small>1 credit</small></button>
+      <button class="gen-btn" id="genBtn">Generate <small id="genCost">1 credit</small></button>
     </div>
   </div>
 </section>
@@ -403,9 +407,17 @@ document.querySelectorAll('.lang-chip').forEach((c,i)=>{
     $('prompt').placeholder = PLACEHOLDERS[['te','hi','en'][i]];
   });
 });
-document.querySelectorAll('.fmt').forEach(f=>{
+let quality = 'standard';
+document.querySelectorAll('#qualityRow .fmt').forEach(f=>{
   f.addEventListener('click',()=>{
-    document.querySelectorAll('.fmt').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('#qualityRow .fmt').forEach(x=>x.classList.remove('active'));
+    f.classList.add('active'); quality = f.dataset.q;
+    $('genCost').textContent = quality==='premium' ? '3 credits' : '1 credit';
+  });
+});
+document.querySelectorAll('.fmt-toggle .fmt').forEach(f=>{
+  f.addEventListener('click',()=>{
+    document.querySelectorAll('.fmt-toggle .fmt').forEach(x=>x.classList.remove('active'));
     f.classList.add('active'); ratio = f.dataset.ratio;
   });
 });
@@ -472,31 +484,31 @@ async function startGeneration(){
   try{
     const headers = {'Content-Type':'application/json'};
     if(token) headers['Authorization'] = 'Bearer '+token;
-    const body = {prompt: promptText, aspect_ratio: ratio};
+    const body = {prompt: promptText, aspect_ratio: ratio, quality};
     if(!token && testAccess) body.access = testAccess;
     const res = await fetch('api/video-proxy.php?action=submit',{method:'POST', headers, body: JSON.stringify(body)});
     const j = await res.json();
     if(!res.ok || !j.request_id){
       if(res.status===401){ openAuth(); throw new Error('Please login to generate videos.'); }
-      if(j.no_credits){ showView('credits'); throw new Error('No credits left — choose a pack to continue.'); }
+      if(j.no_credits){ showView('credits'); throw new Error(j.error || 'Not enough credits — choose a pack to continue.'); }
       let msg = j.error || 'Submit failed';
       if(j.detail){ msg += ' — ' + JSON.stringify(j.detail).slice(0,300); }
       throw new Error(msg);
     }
-    if(user){ user.credits = Math.max(0, user.credits-1); $('creditsPill').textContent='🪙 '+user.credits+' credits'; }
-    pollStatus(j.request_id, Date.now());
+    if(user && j.credits_used){ user.credits = Math.max(0, user.credits - j.credits_used); $('creditsPill').textContent='🪙 '+user.credits+' credits'; }
+    pollStatus(j.request_id, Date.now(), j.quality||quality);
   }catch(e){ fail(e.message); }
 }
 
 function setStep(text, pct){ $('rStep').textContent = text; $('rBar').style.width = Math.min(pct,96)+'%'; }
 
-function pollStatus(rid, startedAt){
+function pollStatus(rid, startedAt, q){
   let ticks = 0;
   clearInterval(polling);
   polling = setInterval(async ()=>{
     ticks++;
     try{
-      let url = 'api/video-proxy.php?action=status&request_id='+encodeURIComponent(rid);
+      let url = 'api/video-proxy.php?action=status&request_id='+encodeURIComponent(rid)+'&quality='+encodeURIComponent(q||'standard');
       const headers = {};
       if(token) headers['Authorization']='Bearer '+token;
       else if(testAccess) url += '&access='+encodeURIComponent(testAccess);

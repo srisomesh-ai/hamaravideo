@@ -8,7 +8,7 @@
 require __DIR__ . '/boot.php';
 
 if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/ltx-2.3/text-to-video/fast');
-if (!defined('FAL_MODEL_PREMIUM')) define('FAL_MODEL_PREMIUM', 'fal-ai/veo3.1/fast');
+if (!defined('FAL_MODEL_PREMIUM')) define('FAL_MODEL_PREMIUM', 'fal-ai/veo3.1');
 if (!defined('PREMIUM_CREDITS')) define('PREMIUM_CREDITS', 3);
 if (!defined('VIDEO_DURATION')) define('VIDEO_DURATION', 8);
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
@@ -21,9 +21,10 @@ function tier_credits($quality) {
 }
 function tier_payload($quality, $prompt, $aspect) {
     if ($quality === 'premium') {
-        // Veo 3.1 fast parameter format
+        // Veo 3.1 parameter format
         return [
             'prompt' => $prompt,
+            'negative_prompt' => 'multiple people talking, two characters speaking the same line, repeated dialogue, garbled speech, wrong gender greeting, extra unexpected characters appearing, on-screen text, subtitles, captions, watermark, distorted faces',
             'duration' => VIDEO_DURATION . 's',
             'aspect_ratio' => $aspect,
             'resolution' => '720p',

@@ -1,30 +1,21 @@
 <?php
 /**
- * HamaraVideo - Fal.ai video generation proxy
- * Secrets live in api/config.local.php on the server (never in git).
- *
- * Endpoints:
- *   POST video-proxy.php?action=submit   {prompt, aspect_ratio, access}
- *   GET  video-proxy.php?action=status&request_id=...&access=...
+ * HamaraVideo - video generation API
+ * Modes:
+ *   - Logged-in user (Bearer token): deducts 1 credit, records job, credit auto-refund on failure.
+ *   - Owner test mode (access code, no token): free generation, no DB record. For testing only.
  */
-
-header('Content-Type: application/json');
-header('Cache-Control: no-store');
-
-$cfg = __DIR__ . '/config.local.php';
-if (!file_exists($cfg)) { http_response_code(500); echo json_encode(['error' => 'Server not configured. config.local.php missing.']); exit; }
-require $cfg;
+require __DIR__ . '/boot.php';
 
 if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/kling-video/v3/standard/text-to-video');
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
 function fal_call($method, $url, $body = null) {
     $ch = curl_init($url);
-    $headers = ['Authorization: Key ' . FAL_API_KEY, 'Content-Type: application/json'];
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST => $method,
-        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_HTTPHEADER => ['Authorization: Key ' . FAL_API_KEY, 'Content-Type: application/json'],
         CURLOPT_TIMEOUT => 60,
     ]);
     if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
@@ -39,20 +30,13 @@ function fal_call($method, $url, $body = null) {
 }
 
 function improve_prompt($userText) {
-    // If Claude key configured, turn loose Telugu/Hindi/English input into a cinematic English video prompt.
-    if (!defined('ANTHROPIC_API_KEY') || ANTHROPIC_API_KEY === '' || strpos(ANTHROPIC_API_KEY, 'PASTE') === 0) {
-        return $userText; // pass through until Claude key is added
-    }
-    $sys = "You convert a small Indian business owner's promo idea (may be in Telugu, Hindi or English) into ONE concise English text-to-video prompt for an AI video model. Cinematic, warm, festive Indian retail feel where appropriate. Describe visuals only (scenes, camera, lighting, mood). Do NOT include on-screen text, phone numbers or shop names (text overlays are added later). Max 80 words. Reply with the prompt only.";
+    if (!defined('ANTHROPIC_API_KEY') || ANTHROPIC_API_KEY === '' || strpos(ANTHROPIC_API_KEY, 'PASTE') === 0) return $userText;
+    $sys = "You convert a small Indian business owner's promo idea (may be in Telugu, Hindi or English) into ONE concise English text-to-video prompt for an AI video model. Cinematic, warm, festive Indian retail feel where appropriate. Describe visuals only (scenes, camera, lighting, mood). Do NOT include on-screen text, phone numbers or shop names. Max 80 words. Reply with the prompt only.";
     $ch = curl_init('https://api.anthropic.com/v1/messages');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => [
-            'x-api-key: ' . ANTHROPIC_API_KEY,
-            'anthropic-version: 2023-06-01',
-            'Content-Type: application/json',
-        ],
+        CURLOPT_HTTPHEADER => ['x-api-key: ' . ANTHROPIC_API_KEY, 'anthropic-version: 2023-06-01', 'Content-Type: application/json'],
         CURLOPT_POSTFIELDS => json_encode([
             'model' => 'claude-haiku-4-5-20251001',
             'max_tokens' => 300,
@@ -64,31 +48,36 @@ function improve_prompt($userText) {
     $res = curl_exec($ch);
     curl_close($ch);
     $j = json_decode($res, true);
-    if (isset($j['content'][0]['text'])) {
-        $t = trim($j['content'][0]['text']);
-        if ($t !== '') return $t;
-    }
+    if (isset($j['content'][0]['text'])) { $t = trim($j['content'][0]['text']); if ($t !== '') return $t; }
     return $userText;
 }
 
 $action = $_GET['action'] ?? '';
 
-// simple gate so random visitors can't burn credits during testing
-$access = $_GET['access'] ?? '';
 if ($action === 'submit') {
-    $in = json_decode(file_get_contents('php://input'), true) ?: [];
-    $access = $in['access'] ?? $access;
-}
-if (TEST_ACCESS_CODE !== '' && $access !== TEST_ACCESS_CODE) {
-    http_response_code(403); echo json_encode(['error' => 'Invalid access code']); exit;
-}
-
-if ($action === 'submit') {
-    $in = json_decode(file_get_contents('php://input'), true) ?: [];
+    $in = json_in();
     $prompt = trim($in['prompt'] ?? '');
     $aspect = in_array($in['aspect_ratio'] ?? '', ['9:16', '16:9', '1:1']) ? $in['aspect_ratio'] : '9:16';
-    if (mb_strlen($prompt) < 5) { http_response_code(400); echo json_encode(['error' => 'Prompt too short']); exit; }
-    if (mb_strlen($prompt) > 1500) { http_response_code(400); echo json_encode(['error' => 'Prompt too long']); exit; }
+    if (mb_strlen($prompt) < 5) out(['error' => 'Prompt too short'], 400);
+    if (mb_strlen($prompt) > 1500) out(['error' => 'Prompt too long'], 400);
+
+    // determine mode
+    $uid = auth_user_id();
+    $testMode = false;
+    if ($uid === null) {
+        $access = $in['access'] ?? ($_GET['access'] ?? '');
+        if (TEST_ACCESS_CODE !== '' && $access === TEST_ACCESS_CODE) { $testMode = true; }
+        else out(['error' => 'Login required', 'auth' => false], 401);
+    }
+
+    $user = null;
+    if (!$testMode) {
+        $st = db()->prepare('SELECT * FROM users WHERE id = ?');
+        $st->execute([$uid]);
+        $user = $st->fetch();
+        if (!$user) out(['error' => 'Login required', 'auth' => false], 401);
+        if ((int)$user['credits'] < 1) out(['error' => 'No credits left. Please buy a pack.', 'no_credits' => true], 402);
+    }
 
     $finalPrompt = improve_prompt($prompt);
 
@@ -97,18 +86,36 @@ if ($action === 'submit') {
         'duration' => '5',
         'aspect_ratio' => $aspect,
     ]);
-    if ($code >= 200 && $code < 300 && isset($res['request_id'])) {
-        echo json_encode(['request_id' => $res['request_id'], 'used_prompt' => $finalPrompt]);
-    } else {
-        http_response_code(502);
-        echo json_encode(['error' => 'Generation submit failed', 'detail' => $res, 'http' => $code]);
+    if (!($code >= 200 && $code < 300 && isset($res['request_id']))) {
+        out(['error' => 'Generation submit failed', 'detail' => $res, 'http' => $code], 502);
     }
-    exit;
+
+    $jobId = null;
+    if (!$testMode) {
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('UPDATE users SET credits = credits - 1 WHERE id = ? AND credits >= 1')->execute([$uid]);
+            $ins = $pdo->prepare('INSERT INTO jobs (user_id, prompt, used_prompt, aspect, fal_request_id, status) VALUES (?,?,?,?,?,"SUBMITTED")');
+            $ins->execute([$uid, $prompt, $finalPrompt, $aspect, $res['request_id']]);
+            $jobId = (int)$pdo->lastInsertId();
+            $pdo->commit();
+        } catch (Exception $e) { $pdo->rollBack(); }
+    }
+
+    out(['request_id' => $res['request_id'], 'job_id' => $jobId, 'used_prompt' => $finalPrompt]);
 }
 
 if ($action === 'status') {
     $rid = preg_replace('/[^a-zA-Z0-9\-_]/', '', $_GET['request_id'] ?? '');
-    if ($rid === '') { http_response_code(400); echo json_encode(['error' => 'request_id required']); exit; }
+    if ($rid === '') out(['error' => 'request_id required'], 400);
+
+    // allow either logged-in user or test access code
+    $uid = auth_user_id();
+    if ($uid === null) {
+        $access = $_GET['access'] ?? '';
+        if (!(TEST_ACCESS_CODE !== '' && $access === TEST_ACCESS_CODE)) out(['error' => 'Login required', 'auth' => false], 401);
+    }
 
     list($code, $st) = fal_call('GET', 'https://queue.fal.run/' . FAL_MODEL . '/requests/' . $rid . '/status');
     $status = $st['status'] ?? 'UNKNOWN';
@@ -116,12 +123,40 @@ if ($action === 'status') {
     if ($status === 'COMPLETED') {
         list($c2, $result) = fal_call('GET', 'https://queue.fal.run/' . FAL_MODEL . '/requests/' . $rid);
         $videoUrl = $result['video']['url'] ?? ($result['output']['video']['url'] ?? null);
-        echo json_encode(['status' => 'COMPLETED', 'video_url' => $videoUrl, 'result' => $videoUrl ? null : $result]);
-    } else {
-        echo json_encode(['status' => $status, 'queue_position' => $st['queue_position'] ?? null, 'detail' => ($code >= 400 ? $st : null)]);
+        if ($uid !== null && $videoUrl) {
+            $up = db()->prepare('UPDATE jobs SET status = "COMPLETED", video_url = ? WHERE fal_request_id = ? AND user_id = ?');
+            $up->execute([$videoUrl, $rid, $uid]);
+        }
+        out(['status' => 'COMPLETED', 'video_url' => $videoUrl, 'result' => $videoUrl ? null : $result]);
     }
-    exit;
+
+    if (in_array($status, ['FAILED', 'ERROR'])) {
+        if ($uid !== null) {
+            // refund credit once
+            $pdo = db();
+            $pdo->beginTransaction();
+            try {
+                $q = $pdo->prepare('SELECT * FROM jobs WHERE fal_request_id = ? AND user_id = ? FOR UPDATE');
+                $q->execute([$rid, $uid]);
+                $job = $q->fetch();
+                if ($job && !$job['credit_refunded'] && $job['status'] !== 'FAILED') {
+                    $pdo->prepare('UPDATE jobs SET status = "FAILED", credit_refunded = 1 WHERE id = ?')->execute([$job['id']]);
+                    $pdo->prepare('UPDATE users SET credits = credits + 1 WHERE id = ?')->execute([$uid]);
+                }
+                $pdo->commit();
+            } catch (Exception $e) { $pdo->rollBack(); }
+        }
+        out(['status' => 'FAILED']);
+    }
+
+    out(['status' => $status, 'queue_position' => $st['queue_position'] ?? null]);
 }
 
-http_response_code(404);
-echo json_encode(['error' => 'Unknown action']);
+if ($action === 'history') {
+    $user = require_user();
+    $st = db()->prepare('SELECT id, prompt, aspect, status, video_url, created_at FROM jobs WHERE user_id = ? ORDER BY id DESC LIMIT 50');
+    $st->execute([$user['id']]);
+    out(['jobs' => $st->fetchAll(), 'credits' => (int)$user['credits']]);
+}
+
+out(['error' => 'Unknown action'], 404);

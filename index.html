@@ -8,13 +8,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;700;800&family=Anek+Telugu:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   :root{
     --ink:#141D38;        /* Big Stone */
     --card:#1C2747;       /* card surface */
     --card2:#243156;      /* raised surface */
     --marigold:#FCDB32;   /* Bright Sun - primary action */
-    --rani:#FCDB32;       /* accent (Bright Sun) */
     --cream:#F8F6EC;      /* text on dark */
     --muted:#93A0C4;      /* secondary text */
     --line:#2C3A63;
@@ -24,99 +24,43 @@
   html{scroll-behavior:smooth}
   body{
     font-family:'Public Sans',system-ui,sans-serif;
-    background:var(--ink);
-    color:var(--cream);
-    min-height:100vh;
-    max-width:480px;
-    margin:0 auto;
-    padding-bottom:84px; /* space for bottom nav */
+    background:var(--ink);color:var(--cream);
+    min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:84px;
   }
   .display{font-family:'Anek Latin','Anek Telugu',sans-serif}
 
-  /* ===== Header ===== */
-  header{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:18px 18px 8px;
-  }
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 8px}
   .brand{display:flex;align-items:center;gap:10px}
-  .brand-mark{
-    width:38px;height:38px;border-radius:12px;
-    background:linear-gradient(135deg,#FCDB32,#E3BE13);
-    display:grid;place-items:center;
-    font-family:'Anek Latin';font-weight:800;font-size:20px;color:var(--ink);
-  }
+  .brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FCDB32,#E3BE13);display:grid;place-items:center;font-family:'Anek Latin';font-weight:800;font-size:20px;color:var(--ink)}
   .brand h1{font-family:'Anek Latin';font-weight:800;font-size:21px;letter-spacing:.2px}
   .brand h1 span{color:var(--marigold)}
-  .credits-pill{
-    display:flex;align-items:center;gap:6px;
-    background:var(--card);border:1px solid var(--line);
-    border-radius:999px;padding:7px 13px;
-    font-size:13px;font-weight:600;color:var(--marigold);
-  }
+  .credits-pill{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--marigold);cursor:pointer}
 
-  /* ===== Hero prompt ===== */
   .hero{padding:14px 18px 6px}
-  .hero h2{
-    font-family:'Anek Latin','Anek Telugu';font-weight:800;
-    font-size:28px;line-height:1.15;margin-bottom:4px;
-  }
+  .hero h2{font-family:'Anek Latin','Anek Telugu';font-weight:800;font-size:28px;line-height:1.15;margin-bottom:4px}
   .hero h2 em{font-style:normal;color:var(--marigold)}
   .hero p.sub{color:var(--muted);font-size:14px;margin-bottom:14px}
 
   .lang-row{display:flex;gap:8px;margin-bottom:12px}
-  .lang-chip{
-    font-family:'Anek Telugu','Anek Latin';
-    border:1px solid var(--line);background:var(--card);
-    color:var(--muted);border-radius:999px;
-    padding:7px 15px;font-size:14px;font-weight:500;cursor:pointer;
-  }
-  .lang-chip.active{
-    background:var(--cream);color:var(--ink);border-color:var(--cream);font-weight:700;
-  }
+  .lang-chip{font-family:'Anek Telugu','Anek Latin';border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:7px 15px;font-size:14px;font-weight:500;cursor:pointer}
+  .lang-chip.active{background:var(--cream);color:var(--ink);border-color:var(--cream);font-weight:700}
 
-  .prompt-card{
-    background:var(--card);border:1px solid var(--line);
-    border-radius:var(--radius);padding:14px;
-  }
-  .prompt-card textarea{
-    width:100%;background:transparent;border:none;outline:none;resize:none;
-    color:var(--cream);font-family:'Anek Telugu','Public Sans';font-size:16px;
-    min-height:74px;line-height:1.5;
-  }
-  .prompt-card textarea::placeholder{color:#6F68A0}
+  .prompt-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .prompt-card textarea{width:100%;background:transparent;border:none;outline:none;resize:none;color:var(--cream);font-family:'Anek Telugu','Public Sans';font-size:16px;min-height:74px;line-height:1.5}
+  .prompt-card textarea::placeholder{color:#5E6C99}
   .prompt-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
   .fmt-toggle{display:flex;gap:6px}
-  .fmt{
-    font-size:12px;color:var(--muted);border:1px solid var(--line);
-    border-radius:8px;padding:5px 9px;cursor:pointer;
-  }
+  .fmt{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer}
   .fmt.active{color:var(--ink);background:var(--marigold);border-color:var(--marigold);font-weight:700}
-  .gen-btn{
-    display:flex;align-items:center;gap:8px;
-    background:var(--marigold);color:var(--ink);
-    font-family:'Anek Latin';font-weight:800;font-size:16px;
-    border:none;border-radius:12px;padding:11px 20px;cursor:pointer;
-  }
+  .gen-btn{display:flex;align-items:center;gap:8px;background:var(--marigold);color:var(--ink);font-family:'Anek Latin';font-weight:800;font-size:16px;border:none;border-radius:12px;padding:11px 20px;cursor:pointer}
   .gen-btn small{font-family:'Public Sans';font-weight:600;font-size:11px;opacity:.75}
 
-  /* ===== Templates ===== */
-  .section-label{
-    padding:22px 18px 10px;display:flex;align-items:baseline;justify-content:space-between;
-  }
+  .section-label{padding:22px 18px 10px;display:flex;align-items:baseline;justify-content:space-between}
   .section-label h3{font-family:'Anek Latin';font-weight:700;font-size:17px}
-  .section-label a{color:var(--rani);font-size:13px;text-decoration:none;font-weight:600}
-  .tpl-scroll{
-    display:flex;gap:12px;overflow-x:auto;padding:2px 18px 6px;
-    scrollbar-width:none;
-  }
+  .tpl-scroll{display:flex;gap:12px;overflow-x:auto;padding:2px 18px 6px;scrollbar-width:none}
   .tpl-scroll::-webkit-scrollbar{display:none}
-  .tpl{
-    min-width:150px;border-radius:14px;overflow:hidden;
-    border:1px solid var(--line);background:var(--card);flex-shrink:0;
-  }
-  .tpl .thumb{
-    height:96px;display:grid;place-items:center;font-size:34px;
-  }
+  .tpl{min-width:150px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--card);flex-shrink:0;cursor:pointer}
+  .tpl .thumb{height:96px;display:grid;place-items:center;font-size:34px}
   .t-diwali .thumb{background:linear-gradient(160deg,#1E2A55,#3A4C8F)}
   .t-shop .thumb{background:linear-gradient(160deg,#243B6B,#3E6BAA)}
   .t-arrival .thumb{background:linear-gradient(160deg,#4A3F14,#9A831F)}
@@ -125,86 +69,77 @@
   .tpl .info b{font-family:'Anek Latin';font-size:14px;font-weight:700;display:block}
   .tpl .info span{font-size:12px;color:var(--muted)}
 
-  /* ===== How it works ===== */
   .steps{padding:6px 18px}
-  .step{
-    display:flex;gap:14px;align-items:flex-start;
-    padding:13px 0;border-bottom:1px dashed var(--line);
-  }
+  .step{display:flex;gap:14px;align-items:flex-start;padding:13px 0;border-bottom:1px dashed var(--line)}
   .step:last-child{border-bottom:none}
-  .step .dot{
-    width:34px;height:34px;border-radius:10px;flex-shrink:0;
-    background:var(--card2);border:1px solid var(--line);
-    display:grid;place-items:center;font-size:16px;
-  }
+  .step .dot{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--card2);border:1px solid var(--line);display:grid;place-items:center;font-size:16px}
   .step b{font-family:'Anek Latin';font-size:15px;display:block;margin-bottom:2px}
   .step span{font-size:13px;color:var(--muted);line-height:1.45}
 
-  /* ===== Pricing ===== */
   .price-wrap{padding:4px 18px 8px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .price{
-    background:var(--card);border:1px solid var(--line);
-    border-radius:var(--radius);padding:16px 14px;text-align:center;position:relative;
-  }
+  .price{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 14px;text-align:center;position:relative;cursor:pointer}
   .price.best{border-color:var(--marigold)}
-  .price .tag{
-    position:absolute;top:-10px;left:50%;transform:translateX(-50%);
-    background:var(--marigold);color:var(--ink);font-size:11px;font-weight:700;
-    border-radius:999px;padding:3px 10px;white-space:nowrap;
-  }
+  .price .tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--marigold);color:var(--ink);font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
   .price .amt{font-family:'Anek Latin';font-weight:800;font-size:26px}
   .price .amt small{font-size:13px;color:var(--muted);font-weight:500}
   .price p{font-size:12.5px;color:var(--muted);margin-top:4px}
-  .upi-note{
-    grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--muted);
-  }
+  .price .buy{margin-top:10px;background:var(--marigold);color:var(--ink);border:none;border-radius:10px;font-family:'Anek Latin';font-weight:800;font-size:14px;padding:9px 0;width:100%;cursor:pointer}
+  .upi-note{grid-column:1/-1;text-align:center;font-size:12.5px;color:var(--muted)}
   .upi-note b{color:var(--cream)}
 
-  /* ===== Sample result mock ===== */
   .result-mock{margin:10px 18px 6px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
-  .result-mock .bar{
-    height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:10px 0 6px;
-  }
-  .result-mock .bar i{
-    display:block;height:100%;width:64%;
-    background:linear-gradient(90deg,#FCDB32,#E3BE13);
-  }
+  .result-mock .bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:10px 0 6px}
+  .result-mock .bar i{display:block;height:100%;width:5%;background:linear-gradient(90deg,#FCDB32,#E3BE13)}
   .result-mock b{font-family:'Anek Latin';font-size:15px}
   .result-mock span{font-size:12.5px;color:var(--muted)}
 
-  /* ===== Bottom nav ===== */
-  nav{
-    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-    width:100%;max-width:480px;
-    background:rgba(20,29,56,.92);backdrop-filter:blur(10px);
-    border-top:1px solid var(--line);
-    display:flex;justify-content:space-around;padding:10px 0 max(10px, env(safe-area-inset-bottom));
-  }
-  nav a{
-    color:var(--muted);text-decoration:none;font-size:11px;font-weight:600;
-    display:flex;flex-direction:column;align-items:center;gap:3px;
-  }
+  .job{margin:0 18px 12px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px}
+  .job b{font-family:'Anek Latin';font-size:14px;display:block;margin-bottom:2px;word-break:break-word}
+  .job span{font-size:12px;color:var(--muted)}
+  .job a{display:inline-block;margin-top:8px;background:var(--marigold);color:var(--ink);font-family:'Anek Latin';font-weight:800;font-size:13px;border-radius:9px;padding:7px 14px;text-decoration:none}
+  .job .st-FAILED{color:#FF8A8A}
+  .empty{margin:0 18px;color:var(--muted);font-size:14px;text-align:center;padding:30px 10px}
+
+  .acct{margin:0 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .acct .row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .acct .row:last-child{border-bottom:none}
+  .acct .row span{color:var(--muted)}
+  .btn-line{display:block;margin:14px 18px 0;background:transparent;border:1px solid var(--line);color:var(--cream);border-radius:12px;font-family:'Anek Latin';font-weight:700;font-size:15px;padding:12px 0;width:calc(100% - 36px);cursor:pointer;text-align:center}
+
+  nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(20,29,56,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:10px 0 max(10px, env(safe-area-inset-bottom))}
+  nav a{color:var(--muted);text-decoration:none;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
   nav a.active{color:var(--marigold)}
   nav a .ico{font-size:19px}
 
-  .sample-banner{
-    background:var(--marigold);color:var(--ink);text-align:center;
-    font-size:12px;font-weight:700;padding:6px;
-  }
+  .view{display:none}
+  .view.active{display:block}
+
+  /* auth overlay */
+  .overlay{position:fixed;inset:0;background:rgba(10,14,28,.8);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .overlay.open{display:flex}
+  .sheet{width:100%;max-width:480px;background:var(--ink);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom))}
+  .sheet h3{font-family:'Anek Latin';font-weight:800;font-size:20px;margin-bottom:4px}
+  .sheet p{color:var(--muted);font-size:13.5px;margin-bottom:14px}
+  .sheet input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;color:var(--cream);font-size:16px;padding:13px 14px;margin-bottom:10px;outline:none}
+  .sheet input:focus{border-color:var(--marigold)}
+  .sheet .primary{width:100%;background:var(--marigold);color:var(--ink);border:none;border-radius:12px;font-family:'Anek Latin';font-weight:800;font-size:16px;padding:13px 0;cursor:pointer;margin-top:4px}
+  .sheet .switch{text-align:center;margin-top:12px;font-size:13.5px;color:var(--muted)}
+  .sheet .switch a{color:var(--marigold);cursor:pointer;font-weight:600}
+  .sheet .err{color:#FF8A8A;font-size:13px;margin-bottom:8px;display:none}
 </style>
 </head>
 <body>
-
-<div class="sample-banner">TEST MODE — HamaraVideo early access</div>
 
 <header>
   <div class="brand">
     <div class="brand-mark">▶</div>
     <h1>Hamara<span>Video</span></h1>
   </div>
-  <div class="credits-pill">🪙 3 credits</div>
+  <div class="credits-pill" id="creditsPill" onclick="showView('credits')">🪙 —</div>
 </header>
 
+<!-- ============ HOME ============ -->
+<div class="view active" id="view-home">
 <section class="hero">
   <h2 class="display">Mee business ki<br><em>AI video</em> — 2 nimishallo</h2>
   <p class="sub">Type your idea in your language. We make a ready-to-share WhatsApp video.</p>
@@ -216,7 +151,7 @@
   </div>
 
   <div class="prompt-card">
-    <textarea id="prompt" placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, షాప్ పేరు శ్రీ లక్ష్మి స్టోర్స్, ఫోన్ 9876543210"></textarea>
+    <textarea id="prompt" placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, పండుగ వాతావరణం"></textarea>
     <div class="prompt-foot">
       <div class="fmt-toggle">
         <span class="fmt active" data-ratio="9:16">9:16 Status</span>
@@ -227,22 +162,11 @@
   </div>
 </section>
 
-<div class="section-label">
-  <h3 class="display">Ready templates</h3>
-  <a href="#">All →</a>
-</div>
-<div class="tpl-scroll">
-  <div class="tpl t-diwali"><div class="thumb">🪔</div><div class="info"><b>Diwali Offer</b><span>Festival discount promo</span></div></div>
-  <div class="tpl t-shop"><div class="thumb">🏪</div><div class="info"><b>Shop Promo</b><span>Introduce your shop</span></div></div>
-  <div class="tpl t-arrival"><div class="thumb">🛍️</div><div class="info"><b>New Arrival</b><span>New stock announcement</span></div></div>
-  <div class="tpl t-event"><div class="thumb">🎉</div><div class="info"><b>Event Invite</b><span>Function / opening invite</span></div></div>
-</div>
-
 <div class="section-label" id="resultLabel" style="display:none"><h3 class="display">Your video</h3></div>
 <div class="result-mock" id="resultCard" style="display:none">
   <b id="rTitle">Generating…</b><br>
   <span id="rSub">Please keep this page open. Takes about 1–3 minutes.</span>
-  <div class="bar" id="rBarWrap"><i id="rBar" style="width:5%"></i></div>
+  <div class="bar" id="rBarWrap"><i id="rBar"></i></div>
   <span id="rStep">Submitting…</span>
   <div id="rVideoWrap" style="display:none;margin-top:12px">
     <video id="rVideo" controls playsinline style="width:100%;border-radius:12px;background:#000"></video>
@@ -250,154 +174,344 @@
   </div>
 </div>
 
+<div class="section-label"><h3 class="display">Ready templates</h3></div>
+<div class="tpl-scroll">
+  <div class="tpl t-diwali" data-fill="Diwali festival offer at my shop, glowing diyas, festive decorations, warm celebration mood"><div class="thumb">🪔</div><div class="info"><b>Diwali Offer</b><span>Festival discount promo</span></div></div>
+  <div class="tpl t-shop" data-fill="Grand promo video of my shop, welcoming entrance, happy customers browsing, bright modern interior"><div class="thumb">🏪</div><div class="info"><b>Shop Promo</b><span>Introduce your shop</span></div></div>
+  <div class="tpl t-arrival" data-fill="New stock arrival at my store, fresh products beautifully displayed, exciting reveal, premium feel"><div class="thumb">🛍️</div><div class="info"><b>New Arrival</b><span>New stock announcement</span></div></div>
+  <div class="tpl t-event" data-fill="Grand opening celebration invitation, ribbon cutting, flowers, festive crowd, joyful atmosphere"><div class="thumb">🎉</div><div class="info"><b>Event Invite</b><span>Function / opening invite</span></div></div>
+</div>
+
 <div class="section-label"><h3 class="display">How it works</h3></div>
 <div class="steps">
   <div class="step"><div class="dot">✍️</div><div><b>Type your offer</b><span>Any language — Telugu, Hindi or English. Our AI writes the perfect video script for you.</span></div></div>
-  <div class="step"><div class="dot">🎬</div><div><b>AI makes the video</b><span>Cinematic video with your shop name and phone number on screen. Ready in about 2 minutes.</span></div></div>
+  <div class="step"><div class="dot">🎬</div><div><b>AI makes the video</b><span>Cinematic video ready in about 2 minutes.</span></div></div>
   <div class="step"><div class="dot">📲</div><div><b>Share on WhatsApp</b><span>Download in Status size (9:16) and send to all your customers instantly.</span></div></div>
 </div>
+</div>
 
-<div class="section-label"><h3 class="display">Simple pricing</h3></div>
-<div class="price-wrap">
-  <div class="price">
-    <div class="amt">₹49<small> / 1 video</small></div>
-    <p>Try it once</p>
+<!-- ============ MY VIDEOS ============ -->
+<div class="view" id="view-videos">
+  <div class="section-label"><h3 class="display">My videos</h3></div>
+  <div id="jobsList"><div class="empty">Login to see your videos.</div></div>
+</div>
+
+<!-- ============ CREDITS ============ -->
+<div class="view" id="view-credits">
+  <div class="section-label"><h3 class="display">Buy credits</h3></div>
+  <div class="price-wrap">
+    <div class="price" data-pack="single">
+      <div class="amt">₹49<small> / 1 video</small></div>
+      <p>Try it once</p>
+      <button class="buy">Buy</button>
+    </div>
+    <div class="price best" data-pack="pack5">
+      <div class="tag">Most popular</div>
+      <div class="amt">₹199<small> / 5 videos</small></div>
+      <p>₹39.8 per video</p>
+      <button class="buy">Buy</button>
+    </div>
+    <div class="price" data-pack="pack15" style="grid-column:1/-1">
+      <div class="amt">₹499<small> / 15 videos</small></div>
+      <p>₹33.3 per video — best value</p>
+      <button class="buy">Buy</button>
+    </div>
+    <div class="upi-note">Pay with any UPI app — <b>GPay · PhonePe · Paytm</b> — or card / netbanking. Secured by Razorpay.</div>
   </div>
-  <div class="price best">
-    <div class="tag">Most popular</div>
-    <div class="amt">₹199<small> / 5 videos</small></div>
-    <p>₹39.8 per video</p>
+</div>
+
+<!-- ============ ACCOUNT ============ -->
+<div class="view" id="view-account">
+  <div class="section-label"><h3 class="display">Account</h3></div>
+  <div class="acct" id="acctBox"><div class="empty">Not logged in.</div></div>
+  <button class="btn-line" id="logoutBtn" style="display:none">Log out</button>
+  <div style="margin:20px 18px 0;font-size:12.5px;color:var(--muted);line-height:1.7">
+    <a href="terms.html" style="color:var(--marigold)">Terms</a> ·
+    <a href="privacy.html" style="color:var(--marigold)">Privacy</a> ·
+    <a href="refund-policy.html" style="color:var(--marigold)">Refunds</a> ·
+    <a href="contact.html" style="color:var(--marigold)">Contact</a>
   </div>
-  <div class="upi-note">Pay with any UPI app — <b>GPay · PhonePe · Paytm</b>. First video free with watermark.</div>
 </div>
 
 <nav>
-  <a href="#" class="active"><span class="ico">🏠</span>Home</a>
-  <a href="#"><span class="ico">🎬</span>My Videos</a>
-  <a href="#"><span class="ico">🪙</span>Credits</a>
-  <a href="#"><span class="ico">👤</span>Account</a>
+  <a data-view="home" class="active"><span class="ico">🏠</span>Home</a>
+  <a data-view="videos"><span class="ico">🎬</span>My Videos</a>
+  <a data-view="credits"><span class="ico">🪙</span>Credits</a>
+  <a data-view="account"><span class="ico">👤</span>Account</a>
 </nav>
 
+<!-- ============ AUTH SHEET ============ -->
+<div class="overlay" id="authOverlay">
+  <div class="sheet">
+    <div id="loginPane">
+      <h3 class="display">Welcome back</h3>
+      <p>Login with your mobile number and PIN.</p>
+      <div class="err" id="loginErr"></div>
+      <input id="loginMobile" type="tel" maxlength="10" placeholder="Mobile number">
+      <input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN">
+      <button class="primary" id="loginBtn">Login</button>
+      <div class="switch">New here? <a id="toRegister">Create account — 1 free video</a></div>
+    </div>
+    <div id="registerPane" style="display:none">
+      <h3 class="display">Create account</h3>
+      <p>Get 1 free video credit on signup.</p>
+      <div class="err" id="regErr"></div>
+      <input id="regName" type="text" placeholder="Your name / shop name">
+      <input id="regMobile" type="tel" maxlength="10" placeholder="Mobile number">
+      <input id="regPin" type="password" inputmode="numeric" maxlength="6" placeholder="Create a 4-6 digit PIN">
+      <button class="primary" id="regBtn">Create account</button>
+      <div class="switch">Already have an account? <a id="toLogin">Login</a></div>
+    </div>
+  </div>
+</div>
+
 <script>
-const PLACEHOLDERS = {
-  te: "ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, షాప్ పేరు శ్రీ లక్ష్మి స్టోర్స్, ఫోన్ 9876543210",
-  hi: "उदा: हमारी किराना दुकान का दिवाली ऑफर – सभी सामान पर 20% छूट, दुकान का नाम श्री लक्ष्मी स्टोर्स, फोन 9876543210",
-  en: "e.g. Diwali offer at my kirana shop - 20% off on all items, shop name Sri Lakshmi Stores, phone 9876543210"
+/* ---------- state ---------- */
+let token = localStorage.getItem('hv_token') || '';
+let user = null;
+let ratio = '9:16';
+let polling = null;
+
+const $ = id => document.getElementById(id);
+
+/* ---------- views ---------- */
+function showView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  $('view-'+v).classList.add('active');
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('active', a.dataset.view===v));
+  if(v==='videos') loadHistory();
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',()=>showView(a.dataset.view)));
+
+/* ---------- auth ---------- */
+function openAuth(){ $('authOverlay').classList.add('open'); }
+function closeAuth(){ $('authOverlay').classList.remove('open'); }
+$('authOverlay').addEventListener('click',e=>{ if(e.target===$('authOverlay')) closeAuth(); });
+$('toRegister').onclick=()=>{ $('loginPane').style.display='none'; $('registerPane').style.display='block'; };
+$('toLogin').onclick=()=>{ $('registerPane').style.display='none'; $('loginPane').style.display='block'; };
+
+function setUser(u, t){
+  user = u; if(t){ token = t; localStorage.setItem('hv_token', t); }
+  $('creditsPill').textContent = '🪙 ' + u.credits + ' credits';
+  $('acctBox').innerHTML =
+    '<div class="row"><span>Name</span><b>'+esc(u.name)+'</b></div>'+
+    '<div class="row"><span>Mobile</span><b>'+esc(u.mobile)+'</b></div>'+
+    '<div class="row"><span>Credits</span><b>'+u.credits+'</b></div>';
+  $('logoutBtn').style.display='block';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function refreshMe(){
+  if(!token) return;
+  try{
+    const r = await fetch('api/auth.php?action=me',{headers:{'Authorization':'Bearer '+token}});
+    const j = await r.json();
+    if(r.ok && j.user){ setUser(j.user); }
+    else { token=''; localStorage.removeItem('hv_token'); }
+  }catch(e){}
+}
+
+$('loginBtn').onclick = async ()=>{
+  $('loginErr').style.display='none';
+  try{
+    const r = await fetch('api/auth.php?action=login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mobile:$('loginMobile').value, pin:$('loginPin').value})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error||'Login failed');
+    setUser(j.user, j.token); closeAuth();
+  }catch(e){ $('loginErr').textContent=e.message; $('loginErr').style.display='block'; }
 };
-const langChips = document.querySelectorAll('.lang-chip');
-langChips.forEach((c,i)=>{
+
+$('regBtn').onclick = async ()=>{
+  $('regErr').style.display='none';
+  try{
+    const r = await fetch('api/auth.php?action=register',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:$('regName').value, mobile:$('regMobile').value, pin:$('regPin').value})});
+    const j = await r.json();
+    if(!r.ok) throw new Error(j.error||'Could not create account');
+    setUser(j.user, j.token); closeAuth();
+  }catch(e){ $('regErr').textContent=e.message; $('regErr').style.display='block'; }
+};
+
+$('logoutBtn').onclick = ()=>{
+  token=''; user=null; localStorage.removeItem('hv_token');
+  $('creditsPill').textContent='🪙 —';
+  $('acctBox').innerHTML='<div class="empty">Not logged in.</div>';
+  $('logoutBtn').style.display='none';
+  showView('home');
+};
+
+/* ---------- language + templates ---------- */
+const PLACEHOLDERS = {
+  te: "ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, పండుగ వాతావరణం",
+  hi: "उदा: हमारी किराना दुकान का दिवाली ऑफर – सभी सामान पर 20% छूट, त्योहार का माहौल",
+  en: "e.g. Diwali offer at my kirana shop - 20% off on all items, festive mood"
+};
+document.querySelectorAll('.lang-chip').forEach((c,i)=>{
   c.addEventListener('click',()=>{
-    langChips.forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.lang-chip').forEach(x=>x.classList.remove('active'));
     c.classList.add('active');
-    document.getElementById('prompt').placeholder = PLACEHOLDERS[['te','hi','en'][i]];
+    $('prompt').placeholder = PLACEHOLDERS[['te','hi','en'][i]];
   });
 });
-
-let ratio = '9:16';
 document.querySelectorAll('.fmt').forEach(f=>{
   f.addEventListener('click',()=>{
     document.querySelectorAll('.fmt').forEach(x=>x.classList.remove('active'));
-    f.classList.add('active');
-    ratio = f.dataset.ratio;
+    f.classList.add('active'); ratio = f.dataset.ratio;
   });
 });
+document.querySelectorAll('.tpl').forEach(t=>{
+  t.addEventListener('click',()=>{ $('prompt').value = t.dataset.fill; $('prompt').focus(); window.scrollTo({top:0,behavior:'smooth'}); });
+});
 
-function getAccess(){
-  let a = localStorage.getItem('hv_access') || '';
-  if(!a){
-    a = prompt('Enter test access code:') || '';
-    if(a) localStorage.setItem('hv_access', a.trim());
-  }
-  return (a||'').trim();
-}
+/* ---------- generation ---------- */
+const testAccess = localStorage.getItem('hv_access') || '';
 
-const genBtn = document.getElementById('genBtn');
-let polling = null;
+$('genBtn').addEventListener('click', startGeneration);
 
 async function startGeneration(){
-  const promptText = document.getElementById('prompt').value.trim();
+  const promptText = $('prompt').value.trim();
   if(promptText.length < 5){ alert('Please describe your video first.'); return; }
-  const access = getAccess();
-  if(!access){ return; }
+  if(!token && !testAccess){ openAuth(); return; }
 
+  const genBtn = $('genBtn');
   genBtn.disabled = true; genBtn.style.opacity = .6;
-  document.getElementById('resultLabel').style.display='flex';
-  const card = document.getElementById('resultCard');
-  card.style.display='block';
-  card.scrollIntoView({behavior:'smooth'});
-  document.getElementById('rVideoWrap').style.display='none';
-  document.getElementById('rBarWrap').style.display='block';
-  document.getElementById('rTitle').textContent='Generating your video…';
-  document.getElementById('rSub').textContent='Please keep this page open. Takes about 1–3 minutes.';
+  $('resultLabel').style.display='flex';
+  const card = $('resultCard');
+  card.style.display='block'; card.scrollIntoView({behavior:'smooth'});
+  $('rVideoWrap').style.display='none';
+  $('rBarWrap').style.display='block';
+  $('rTitle').textContent='Generating your video…';
+  $('rSub').textContent='Please keep this page open. Takes about 1–3 minutes.';
   setStep('Submitting…', 8);
 
   try{
-    const res = await fetch('api/video-proxy.php?action=submit',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({prompt: promptText, aspect_ratio: ratio, access})
-    });
+    const headers = {'Content-Type':'application/json'};
+    if(token) headers['Authorization'] = 'Bearer '+token;
+    const body = {prompt: promptText, aspect_ratio: ratio};
+    if(!token && testAccess) body.access = testAccess;
+    const res = await fetch('api/video-proxy.php?action=submit',{method:'POST', headers, body: JSON.stringify(body)});
     const j = await res.json();
     if(!res.ok || !j.request_id){
-      if(res.status===403){ localStorage.removeItem('hv_access'); }
+      if(res.status===401){ openAuth(); throw new Error('Please login to generate videos.'); }
+      if(j.no_credits){ showView('credits'); throw new Error('No credits left — choose a pack to continue.'); }
       let msg = j.error || 'Submit failed';
       if(j.detail){ msg += ' — ' + JSON.stringify(j.detail).slice(0,300); }
       throw new Error(msg);
     }
-    pollStatus(j.request_id, access, Date.now());
-  }catch(e){
-    fail(e.message);
-  }
+    if(user){ user.credits = Math.max(0, user.credits-1); $('creditsPill').textContent='🪙 '+user.credits+' credits'; }
+    pollStatus(j.request_id, Date.now());
+  }catch(e){ fail(e.message); }
 }
 
-function setStep(text, pct){
-  document.getElementById('rStep').textContent = text;
-  document.getElementById('rBar').style.width = Math.min(pct,96)+'%';
-}
+function setStep(text, pct){ $('rStep').textContent = text; $('rBar').style.width = Math.min(pct,96)+'%'; }
 
-function pollStatus(rid, access, startedAt){
+function pollStatus(rid, startedAt){
   let ticks = 0;
+  clearInterval(polling);
   polling = setInterval(async ()=>{
     ticks++;
     try{
-      const res = await fetch('api/video-proxy.php?action=status&request_id='+encodeURIComponent(rid)+'&access='+encodeURIComponent(access));
+      let url = 'api/video-proxy.php?action=status&request_id='+encodeURIComponent(rid);
+      const headers = {};
+      if(token) headers['Authorization']='Bearer '+token;
+      else if(testAccess) url += '&access='+encodeURIComponent(testAccess);
+      const res = await fetch(url,{headers});
       const j = await res.json();
       const mins = Math.floor((Date.now()-startedAt)/60000);
       if(j.status==='COMPLETED'){
         clearInterval(polling);
         if(j.video_url){ showVideo(j.video_url); }
-        else { fail('Video ready but URL missing. Contact support.'); console.log(j.result); }
+        else { fail('Video ready but URL missing. Contact support.'); }
       } else if(j.status==='FAILED' || j.status==='ERROR'){
         clearInterval(polling);
-        fail('Generation failed. Your credit will be restored.');
+        fail('Generation failed. Your credit has been returned.');
+        refreshMe();
       } else if(j.status==='IN_QUEUE'){
         setStep('Waiting in queue'+(j.queue_position!=null?' · position '+j.queue_position:'')+'…', 15+ticks);
       } else {
         setStep('Creating scenes… ('+(mins>0?mins+' min':'few seconds')+')', 30+ticks*2);
       }
-    }catch(e){ /* transient network error - keep polling */ }
+    }catch(e){ /* transient */ }
   }, 5000);
 }
 
 function showVideo(url){
   setStep('Done!', 100);
-  document.getElementById('rTitle').textContent='Your video is ready 🎉';
-  document.getElementById('rSub').textContent='Download and share it on WhatsApp.';
-  document.getElementById('rBarWrap').style.display='none';
-  const v = document.getElementById('rVideo');
-  v.src = url;
-  document.getElementById('rDownload').href = url;
-  document.getElementById('rVideoWrap').style.display='block';
-  genBtn.disabled=false; genBtn.style.opacity=1;
+  $('rTitle').textContent='Your video is ready 🎉';
+  $('rSub').textContent='Download and share it on WhatsApp.';
+  $('rBarWrap').style.display='none';
+  $('rVideo').src = url;
+  $('rDownload').href = url;
+  $('rVideoWrap').style.display='block';
+  $('genBtn').disabled=false; $('genBtn').style.opacity=1;
 }
 
 function fail(msg){
-  document.getElementById('rTitle').textContent='Something went wrong';
-  document.getElementById('rSub').textContent=msg;
+  $('rTitle').textContent='Something went wrong';
+  $('rSub').textContent=msg;
   setStep('Failed', 0);
-  genBtn.disabled=false; genBtn.style.opacity=1;
+  $('genBtn').disabled=false; $('genBtn').style.opacity=1;
 }
 
-genBtn.addEventListener('click', startGeneration);
+/* ---------- history ---------- */
+async function loadHistory(){
+  if(!token){ $('jobsList').innerHTML='<div class="empty">Login to see your videos.</div>'; return; }
+  try{
+    const r = await fetch('api/video-proxy.php?action=history',{headers:{'Authorization':'Bearer '+token}});
+    const j = await r.json();
+    if(!r.ok) throw 0;
+    if(!j.jobs.length){ $('jobsList').innerHTML='<div class="empty">No videos yet. Make your first one!</div>'; return; }
+    $('jobsList').innerHTML = j.jobs.map(job=>{
+      let action = '';
+      if(job.status==='COMPLETED' && job.video_url) action = '<a href="'+esc(job.video_url)+'" target="_blank" download>⬇ Download</a>';
+      else if(job.status==='FAILED') action = '<span class="st-FAILED">Failed — credit returned</span>';
+      else action = '<span>Processing…</span>';
+      return '<div class="job"><b>'+esc(job.prompt).slice(0,90)+'</b><span>'+esc(job.created_at)+' · '+esc(job.aspect)+'</span><br>'+action+'</div>';
+    }).join('');
+  }catch(e){ $('jobsList').innerHTML='<div class="empty">Could not load videos.</div>'; }
+}
+
+/* ---------- payments ---------- */
+document.querySelectorAll('.price .buy').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    if(!token){ openAuth(); return; }
+    const pack = btn.closest('.price').dataset.pack;
+    try{
+      const r = await fetch('api/pay.php?action=create_order',{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body: JSON.stringify({pack})});
+      const j = await r.json();
+      if(!r.ok) throw new Error(j.error||'Could not start payment');
+      const rzp = new Razorpay({
+        key: j.key_id,
+        amount: j.amount,
+        currency: 'INR',
+        name: 'HamaraVideo',
+        description: 'Video credits',
+        order_id: j.order_id,
+        prefill: {name: j.name, contact: j.mobile},
+        theme: {color: '#FCDB32'},
+        handler: async function(resp){
+          const v = await fetch('api/pay.php?action=verify',{method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+            body: JSON.stringify(resp)});
+          const vj = await v.json();
+          if(v.ok && vj.ok){
+            alert('Payment successful! Credits added.');
+            if(vj.credits!=null && user){ user.credits=vj.credits; $('creditsPill').textContent='🪙 '+user.credits+' credits'; }
+            refreshMe();
+          } else { alert(vj.error||'Payment verification failed. Contact support with your payment ID.'); }
+        }
+      });
+      rzp.open();
+    }catch(e){ alert(e.message); }
+  });
+});
+
+/* ---------- init ---------- */
+refreshMe();
 </script>
 </body>
 </html>

@@ -195,7 +195,7 @@
 </head>
 <body>
 
-<div class="sample-banner">DESIGN SAMPLE — for approval only, buttons not wired yet</div>
+<div class="sample-banner">TEST MODE — HamaraVideo early access</div>
 
 <header>
   <div class="brand">
@@ -216,13 +216,13 @@
   </div>
 
   <div class="prompt-card">
-    <textarea placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, షాప్ పేరు శ్రీ లక్ష్మి స్టోర్స్, ఫోన్ 9876543210"></textarea>
+    <textarea id="prompt" placeholder="ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, షాప్ పేరు శ్రీ లక్ష్మి స్టోర్స్, ఫోన్ 9876543210"></textarea>
     <div class="prompt-foot">
       <div class="fmt-toggle">
-        <span class="fmt active">9:16 Status</span>
-        <span class="fmt">1:1 Post</span>
+        <span class="fmt active" data-ratio="9:16">9:16 Status</span>
+        <span class="fmt" data-ratio="1:1">1:1 Post</span>
       </div>
-      <button class="gen-btn">Generate <small>1 credit</small></button>
+      <button class="gen-btn" id="genBtn">Generate <small>1 credit</small></button>
     </div>
   </div>
 </section>
@@ -238,12 +238,16 @@
   <div class="tpl t-event"><div class="thumb">🎉</div><div class="info"><b>Event Invite</b><span>Function / opening invite</span></div></div>
 </div>
 
-<div class="section-label"><h3 class="display">Your video is being made</h3></div>
-<div class="result-mock">
-  <b>Diwali offer — Sri Lakshmi Stores</b><br>
-  <span>Generating… we'll also send the link on WhatsApp when ready.</span>
-  <div class="bar"><i></i></div>
-  <span>Step 2 of 3 · Creating scenes</span>
+<div class="section-label" id="resultLabel" style="display:none"><h3 class="display">Your video</h3></div>
+<div class="result-mock" id="resultCard" style="display:none">
+  <b id="rTitle">Generating…</b><br>
+  <span id="rSub">Please keep this page open. Takes about 1–3 minutes.</span>
+  <div class="bar" id="rBarWrap"><i id="rBar" style="width:5%"></i></div>
+  <span id="rStep">Submitting…</span>
+  <div id="rVideoWrap" style="display:none;margin-top:12px">
+    <video id="rVideo" controls playsinline style="width:100%;border-radius:12px;background:#000"></video>
+    <a id="rDownload" href="#" download target="_blank" style="display:block;text-align:center;margin-top:10px;background:var(--marigold);color:var(--ink);font-family:'Anek Latin';font-weight:800;border-radius:12px;padding:11px;text-decoration:none">⬇ Download video</a>
+  </div>
 </div>
 
 <div class="section-label"><h3 class="display">How it works</h3></div>
@@ -274,5 +278,124 @@
   <a href="#"><span class="ico">👤</span>Account</a>
 </nav>
 
+<script>
+const PLACEHOLDERS = {
+  te: "ఉదా: మా కిరాణా షాప్ దీపావళి ఆఫర్ – అన్ని వస్తువులపై 20% తగ్గింపు, షాప్ పేరు శ్రీ లక్ష్మి స్టోర్స్, ఫోన్ 9876543210",
+  hi: "उदा: हमारी किराना दुकान का दिवाली ऑफर – सभी सामान पर 20% छूट, दुकान का नाम श्री लक्ष्मी स्टोर्स, फोन 9876543210",
+  en: "e.g. Diwali offer at my kirana shop - 20% off on all items, shop name Sri Lakshmi Stores, phone 9876543210"
+};
+const langChips = document.querySelectorAll('.lang-chip');
+langChips.forEach((c,i)=>{
+  c.addEventListener('click',()=>{
+    langChips.forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    document.getElementById('prompt').placeholder = PLACEHOLDERS[['te','hi','en'][i]];
+  });
+});
+
+let ratio = '9:16';
+document.querySelectorAll('.fmt').forEach(f=>{
+  f.addEventListener('click',()=>{
+    document.querySelectorAll('.fmt').forEach(x=>x.classList.remove('active'));
+    f.classList.add('active');
+    ratio = f.dataset.ratio;
+  });
+});
+
+function getAccess(){
+  let a = localStorage.getItem('hv_access') || '';
+  if(!a){
+    a = prompt('Enter test access code:') || '';
+    if(a) localStorage.setItem('hv_access', a.trim());
+  }
+  return (a||'').trim();
+}
+
+const genBtn = document.getElementById('genBtn');
+let polling = null;
+
+async function startGeneration(){
+  const promptText = document.getElementById('prompt').value.trim();
+  if(promptText.length < 5){ alert('Please describe your video first.'); return; }
+  const access = getAccess();
+  if(!access){ return; }
+
+  genBtn.disabled = true; genBtn.style.opacity = .6;
+  document.getElementById('resultLabel').style.display='flex';
+  const card = document.getElementById('resultCard');
+  card.style.display='block';
+  card.scrollIntoView({behavior:'smooth'});
+  document.getElementById('rVideoWrap').style.display='none';
+  document.getElementById('rBarWrap').style.display='block';
+  document.getElementById('rTitle').textContent='Generating your video…';
+  document.getElementById('rSub').textContent='Please keep this page open. Takes about 1–3 minutes.';
+  setStep('Submitting…', 8);
+
+  try{
+    const res = await fetch('api/video-proxy.php?action=submit',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({prompt: promptText, aspect_ratio: ratio, access})
+    });
+    const j = await res.json();
+    if(!res.ok || !j.request_id){
+      if(res.status===403){ localStorage.removeItem('hv_access'); }
+      throw new Error(j.error || 'Submit failed');
+    }
+    pollStatus(j.request_id, access, Date.now());
+  }catch(e){
+    fail(e.message);
+  }
+}
+
+function setStep(text, pct){
+  document.getElementById('rStep').textContent = text;
+  document.getElementById('rBar').style.width = Math.min(pct,96)+'%';
+}
+
+function pollStatus(rid, access, startedAt){
+  let ticks = 0;
+  polling = setInterval(async ()=>{
+    ticks++;
+    try{
+      const res = await fetch('api/video-proxy.php?action=status&request_id='+encodeURIComponent(rid)+'&access='+encodeURIComponent(access));
+      const j = await res.json();
+      const mins = Math.floor((Date.now()-startedAt)/60000);
+      if(j.status==='COMPLETED'){
+        clearInterval(polling);
+        if(j.video_url){ showVideo(j.video_url); }
+        else { fail('Video ready but URL missing. Contact support.'); console.log(j.result); }
+      } else if(j.status==='FAILED' || j.status==='ERROR'){
+        clearInterval(polling);
+        fail('Generation failed. Your credit will be restored.');
+      } else if(j.status==='IN_QUEUE'){
+        setStep('Waiting in queue'+(j.queue_position!=null?' · position '+j.queue_position:'')+'…', 15+ticks);
+      } else {
+        setStep('Creating scenes… ('+(mins>0?mins+' min':'few seconds')+')', 30+ticks*2);
+      }
+    }catch(e){ /* transient network error - keep polling */ }
+  }, 5000);
+}
+
+function showVideo(url){
+  setStep('Done!', 100);
+  document.getElementById('rTitle').textContent='Your video is ready 🎉';
+  document.getElementById('rSub').textContent='Download and share it on WhatsApp.';
+  document.getElementById('rBarWrap').style.display='none';
+  const v = document.getElementById('rVideo');
+  v.src = url;
+  document.getElementById('rDownload').href = url;
+  document.getElementById('rVideoWrap').style.display='block';
+  genBtn.disabled=false; genBtn.style.opacity=1;
+}
+
+function fail(msg){
+  document.getElementById('rTitle').textContent='Something went wrong';
+  document.getElementById('rSub').textContent=msg;
+  setStep('Failed', 0);
+  genBtn.disabled=false; genBtn.style.opacity=1;
+}
+
+genBtn.addEventListener('click', startGeneration);
+</script>
 </body>
 </html>

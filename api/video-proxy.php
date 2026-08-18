@@ -71,17 +71,22 @@ The user gives a rough idea in Telugu, Hindi or English. FIRST understand the re
 
 THEN write ONE English text-to-video prompt as a tight " . VIDEO_DURATION . "-second script where EVERY second is used - no idle moments, no slow filler, no dead air. Structure it as timed beats, like:
 [0-2s] ... [2-5s] ... [5-" . VIDEO_DURATION . "s] ...
-Each beat must contain clear action or a clear spoken line. The final beat should end on a strong, complete note (satisfied customer, inviting storefront, confident smile at camera) - never cut mid-action.
+Each beat must contain clear action or a clear spoken line. The final beat should end on a strong, complete note - never cut mid-action.
+
+SIMPLICITY RULES (critical - AI video fails when overloaded):
+- ONE location, ONE continuous scene. No scene changes.
+- MAXIMUM 2 people visible. Never introduce characters the user didn't mention.
+- MAXIMUM 3 physical actions total across the whole video. If the user listed more actions, keep only the 3 most important ones (always keep the dialogue moment).
+- Dialogue maximum 12 words. Write it as: the person looks directly into the camera and says exactly: \"...\" - and keep the user's words VERBATIM, never changed, translated or shortened.
+- One simple camera instruction only (e.g., static medium shot, or slow push-in). No complex camera moves.
 
 Rules:
-- Fix the user's scene logic where needed: characters positioned sensibly (a customer entering comes through the door; staff already inside greet naturally), correct tone (a welcome is warm and spoken as a greeting; a question sounds like a question).
-- DIALOGUE: keep any spoken line the user wrote VERBATIM in double quotes, attributed to the right speaker, at the right beat. Never change, translate or shorten the user's dialogue.
+- Fix the user's scene logic: characters positioned sensibly (someone entering comes through the door; staff already inside greet naturally), correct tone (a welcome is warm; a question sounds like a question).
 - Indian setting, Indian people, realistic details of that business type.
 - Festivals: authentic decor (diyas, marigold garlands, rangoli, warm lights).
-- Cinematic direction per beat: camera movement, framing, lighting.
 - NEVER include readable WRITTEN text on screen (signboards with names, phone numbers) - written text renders badly. Spoken dialogue is good.
 - No celebrities, no visible brand logos.
-- Max 130 words. Reply with the script-prompt only, nothing else.";
+- Max 120 words. Reply with the script-prompt only, nothing else.";
     $ch = curl_init('https://api.anthropic.com/v1/messages');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,

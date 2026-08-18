@@ -7,7 +7,8 @@
  */
 require __DIR__ . '/boot.php';
 
-if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/kling-video/v3/standard/text-to-video');
+if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/ltx-2.3/text-to-video/fast');
+if (!defined('VIDEO_DURATION')) define('VIDEO_DURATION', 8);
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
 // Fal queue quirk: submit uses the full model path, but status/result use only the app root (owner/app)
@@ -37,15 +38,26 @@ function fal_call($method, $url, $body = null) {
 
 function improve_prompt($userText) {
     if (!defined('ANTHROPIC_API_KEY') || ANTHROPIC_API_KEY === '' || strpos(ANTHROPIC_API_KEY, 'PASTE') === 0) return $userText;
-    $sys = "You convert a small Indian business owner's promo idea (may be in Telugu, Hindi or English) into ONE concise English text-to-video prompt for an AI video model. Cinematic, warm, festive Indian retail feel where appropriate. Describe visuals only (scenes, camera, lighting, mood). Do NOT include on-screen text, phone numbers or shop names. Max 80 words. Reply with the prompt only.";
+    $sys = "You are the creative director for HamaraVideo, which makes short promo videos for small Indian businesses (kirana shops, saree shops, jewellery, restaurants, salons, sweets shops).
+
+The user gives a rough idea in Telugu, Hindi or English. Convert it into ONE excellent English text-to-video prompt for an AI video model (8 second video).
+
+Rules:
+- Understand what the business actually is and show THAT business realistically: correct products on shelves, correct Indian shop setting, Indian customers, Indian street/market context.
+- Structure as a mini shot sequence, e.g.: opening establishing shot of the shop, then product close-ups, then happy customers, ending on an inviting storefront shot.
+- Cinematic language: camera movement (slow push-in, pan across shelves), lighting (warm golden, festive diya glow if festival), mood.
+- If a festival is mentioned (Diwali, Sankranti, etc.) include authentic festival decor: diyas, marigold garlands, rangoli, lights.
+- NEVER include readable text, signboards with names, phone numbers, or numbers in the scene - AI renders text badly.
+- No celebrities, no brand logos.
+- Max 100 words. Reply with the prompt only, nothing else.";
     $ch = curl_init('https://api.anthropic.com/v1/messages');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_HTTPHEADER => ['x-api-key: ' . ANTHROPIC_API_KEY, 'anthropic-version: 2023-06-01', 'Content-Type: application/json'],
         CURLOPT_POSTFIELDS => json_encode([
-            'model' => 'claude-haiku-4-5-20251001',
-            'max_tokens' => 300,
+            'model' => 'claude-sonnet-4-6',
+            'max_tokens' => 400,
             'system' => $sys,
             'messages' => [['role' => 'user', 'content' => $userText]],
         ]),
@@ -89,7 +101,7 @@ if ($action === 'submit') {
 
     list($code, $res) = fal_call('POST', 'https://queue.fal.run/' . FAL_MODEL, [
         'prompt' => $finalPrompt,
-        'duration' => '5',
+        'duration' => VIDEO_DURATION,
         'aspect_ratio' => $aspect,
     ]);
     if (!($code >= 200 && $code < 300 && isset($res['request_id']))) {

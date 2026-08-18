@@ -63,21 +63,25 @@ function fal_call($method, $url, $body = null) {
     return [$code, $json];
 }
 
-function improve_prompt($userText) {
+function improve_prompt($userText, $quality = 'standard') {
     if (!defined('ANTHROPIC_API_KEY') || ANTHROPIC_API_KEY === '' || strpos(ANTHROPIC_API_KEY, 'PASTE') === 0) return $userText;
-    $sys = "You are the creative director for HamaraVideo, which makes short promo videos for small Indian businesses (kirana shops, saree shops, jewellery, restaurants, salons, GPS/tech services, and more).
+    $sys = "You are the creative director and script writer for HamaraVideo, making short promo videos for Indian businesses (shops, restaurants, salons, GPS/tech services, events).
 
-The user gives a rough idea in Telugu, Hindi or English. Convert it into ONE excellent English text-to-video prompt for an AI video model that generates both video AND audio (8 second video).
+The user gives a rough idea in Telugu, Hindi or English. FIRST understand the real intent: What is the business? What is being promoted? Who are the characters (customer, staff, owner, rider)? Where does the scene happen? What must be said?
+
+THEN write ONE English text-to-video prompt as a tight " . VIDEO_DURATION . "-second script where EVERY second is used - no idle moments, no slow filler, no dead air. Structure it as timed beats, like:
+[0-2s] ... [2-5s] ... [5-" . VIDEO_DURATION . "s] ...
+Each beat must contain clear action or a clear spoken line. The final beat should end on a strong, complete note (satisfied customer, inviting storefront, confident smile at camera) - never cut mid-action.
 
 Rules:
-- Understand what the business actually is and show it realistically in an Indian setting with Indian people.
-- DIALOGUE: if the user wants a person to SAY something, keep that spoken line in the prompt VERBATIM inside double quotes, attributed to the speaker (e.g., the man looks at the camera and says \"because of Bharat GPS Tracker my bike is safe\"). Never change, shorten, translate or replace the user's dialogue. If the dialogue is not in English, keep it as given.
-- If the user describes a sequence of actions, keep every action in the same order (e.g., stops bike, removes helmet, speaks to camera, wears helmet, rides away).
-- Structure as a mini shot sequence with cinematic language: camera movement, lighting, mood.
-- Festivals (Diwali, Sankranti, etc.): include authentic decor - diyas, marigold garlands, rangoli, lights.
-- NEVER include readable WRITTEN text in the scene: no signboards with names, no phone numbers on screen - AI renders written text badly. (Spoken dialogue is fine and encouraged.)
-- No celebrities, no brand logos visible.
-- Max 110 words. Reply with the prompt only, nothing else.";
+- Fix the user's scene logic where needed: characters positioned sensibly (a customer entering comes through the door; staff already inside greet naturally), correct tone (a welcome is warm and spoken as a greeting; a question sounds like a question).
+- DIALOGUE: keep any spoken line the user wrote VERBATIM in double quotes, attributed to the right speaker, at the right beat. Never change, translate or shorten the user's dialogue.
+- Indian setting, Indian people, realistic details of that business type.
+- Festivals: authentic decor (diyas, marigold garlands, rangoli, warm lights).
+- Cinematic direction per beat: camera movement, framing, lighting.
+- NEVER include readable WRITTEN text on screen (signboards with names, phone numbers) - written text renders badly. Spoken dialogue is good.
+- No celebrities, no visible brand logos.
+- Max 130 words. Reply with the script-prompt only, nothing else.";
     $ch = curl_init('https://api.anthropic.com/v1/messages');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -85,7 +89,7 @@ Rules:
         CURLOPT_HTTPHEADER => ['x-api-key: ' . ANTHROPIC_API_KEY, 'anthropic-version: 2023-06-01', 'Content-Type: application/json'],
         CURLOPT_POSTFIELDS => json_encode([
             'model' => 'claude-sonnet-4-6',
-            'max_tokens' => 400,
+            'max_tokens' => 500,
             'system' => $sys,
             'messages' => [['role' => 'user', 'content' => $userText]],
         ]),
@@ -128,7 +132,7 @@ if ($action === 'submit') {
         if ((int)$user['credits'] < $needCredits) out(['error' => 'Not enough credits (' . $needCredits . ' needed). Please buy a pack.', 'no_credits' => true], 402);
     }
 
-    $finalPrompt = improve_prompt($prompt);
+    $finalPrompt = improve_prompt($prompt, $quality);
     $model = tier_model($quality);
 
     list($code, $res) = fal_call('POST', 'https://queue.fal.run/' . $model, tier_payload($quality, $finalPrompt, $aspect));

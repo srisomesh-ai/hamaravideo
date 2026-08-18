@@ -10,14 +10,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;700;800&family=Anek+Telugu:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#14122B;        /* night sky */
-    --card:#221E45;       /* card surface */
-    --card2:#2B2656;      /* raised surface */
-    --marigold:#FFB020;   /* primary action */
-    --rani:#E84E8A;       /* accent / festive */
-    --cream:#FFF6E9;      /* text on dark */
-    --muted:#A9A3CC;      /* secondary text */
-    --line:#39336B;
+    --ink:#141D38;        /* Big Stone */
+    --card:#1C2747;       /* card surface */
+    --card2:#243156;      /* raised surface */
+    --marigold:#FCDB32;   /* Bright Sun - primary action */
+    --rani:#FCDB32;       /* accent (Bright Sun) */
+    --cream:#F8F6EC;      /* text on dark */
+    --muted:#93A0C4;      /* secondary text */
+    --line:#2C3A63;
     --radius:16px;
   }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -41,7 +41,7 @@
   .brand{display:flex;align-items:center;gap:10px}
   .brand-mark{
     width:38px;height:38px;border-radius:12px;
-    background:linear-gradient(135deg,var(--marigold),var(--rani));
+    background:linear-gradient(135deg,#FCDB32,#E3BE13);
     display:grid;place-items:center;
     font-family:'Anek Latin';font-weight:800;font-size:20px;color:var(--ink);
   }
@@ -117,10 +117,10 @@
   .tpl .thumb{
     height:96px;display:grid;place-items:center;font-size:34px;
   }
-  .t-diwali .thumb{background:linear-gradient(160deg,#3B1D5E,#7A2E8E)}
-  .t-shop .thumb{background:linear-gradient(160deg,#0E4D64,#1B7F8E)}
-  .t-arrival .thumb{background:linear-gradient(160deg,#7E2A44,#C2456A)}
-  .t-event .thumb{background:linear-gradient(160deg,#5C4A0E,#A67C1B)}
+  .t-diwali .thumb{background:linear-gradient(160deg,#1E2A55,#3A4C8F)}
+  .t-shop .thumb{background:linear-gradient(160deg,#243B6B,#3E6BAA)}
+  .t-arrival .thumb{background:linear-gradient(160deg,#4A3F14,#9A831F)}
+  .t-event .thumb{background:linear-gradient(160deg,#FCDB32,#DDB70F)}
   .tpl .info{padding:10px 12px}
   .tpl .info b{font-family:'Anek Latin';font-size:14px;font-weight:700;display:block}
   .tpl .info span{font-size:12px;color:var(--muted)}
@@ -167,7 +167,7 @@
   }
   .result-mock .bar i{
     display:block;height:100%;width:64%;
-    background:linear-gradient(90deg,var(--marigold),var(--rani));
+    background:linear-gradient(90deg,#FCDB32,#E3BE13);
   }
   .result-mock b{font-family:'Anek Latin';font-size:15px}
   .result-mock span{font-size:12.5px;color:var(--muted)}
@@ -176,7 +176,7 @@
   nav{
     position:fixed;bottom:0;left:50%;transform:translateX(-50%);
     width:100%;max-width:480px;
-    background:rgba(20,18,43,.92);backdrop-filter:blur(10px);
+    background:rgba(20,29,56,.92);backdrop-filter:blur(10px);
     border-top:1px solid var(--line);
     display:flex;justify-content:space-around;padding:10px 0 max(10px, env(safe-area-inset-bottom));
   }
@@ -188,8 +188,8 @@
   nav a .ico{font-size:19px}
 
   .sample-banner{
-    background:var(--rani);color:#fff;text-align:center;
-    font-size:12px;font-weight:600;padding:6px;
+    background:var(--marigold);color:var(--ink);text-align:center;
+    font-size:12px;font-weight:700;padding:6px;
   }
 </style>
 </head>

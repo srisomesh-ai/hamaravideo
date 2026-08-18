@@ -10,6 +10,12 @@ require __DIR__ . '/boot.php';
 if (!defined('FAL_MODEL')) define('FAL_MODEL', 'fal-ai/kling-video/v3/standard/text-to-video');
 if (!defined('TEST_ACCESS_CODE')) define('TEST_ACCESS_CODE', '');
 
+// Fal queue quirk: submit uses the full model path, but status/result use only the app root (owner/app)
+function fal_app_root() {
+    $parts = explode('/', FAL_MODEL);
+    return $parts[0] . '/' . $parts[1];
+}
+
 function fal_call($method, $url, $body = null) {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -117,11 +123,11 @@ if ($action === 'status') {
         if (!(TEST_ACCESS_CODE !== '' && $access === TEST_ACCESS_CODE)) out(['error' => 'Login required', 'auth' => false], 401);
     }
 
-    list($code, $st) = fal_call('GET', 'https://queue.fal.run/' . FAL_MODEL . '/requests/' . $rid . '/status');
+    list($code, $st) = fal_call('GET', 'https://queue.fal.run/' . fal_app_root() . '/requests/' . $rid . '/status');
     $status = $st['status'] ?? 'UNKNOWN';
 
     if ($status === 'COMPLETED') {
-        list($c2, $result) = fal_call('GET', 'https://queue.fal.run/' . FAL_MODEL . '/requests/' . $rid);
+        list($c2, $result) = fal_call('GET', 'https://queue.fal.run/' . fal_app_root() . '/requests/' . $rid);
         $videoUrl = $result['video']['url'] ?? ($result['output']['video']['url'] ?? null);
         if ($uid !== null && $videoUrl) {
             $up = db()->prepare('UPDATE jobs SET status = "COMPLETED", video_url = ? WHERE fal_request_id = ? AND user_id = ?');

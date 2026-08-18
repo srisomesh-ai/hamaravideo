@@ -76,8 +76,10 @@ Each beat must contain clear action or a clear spoken line. The final beat shoul
 SIMPLICITY RULES (critical - AI video fails when overloaded):
 - ONE location, ONE continuous scene. No scene changes.
 - MAXIMUM 2 people visible. Never introduce characters the user didn't mention.
+- ONLY ONE PERSON SPEAKS in the entire video. Explicitly state that the other person stays silent and only reacts (smiles, nods, points). Never give lines to two people.
+- Lock each character's gender and appearance explicitly at the start of the script (e.g., 'a male shopkeeper in his 30s', 'a female customer in a saree') and keep greetings consistent with gender. If the user did not specify gender, use gender-neutral dialogue (e.g., \"Welcome! How may I help you?\" - never \"sir\"/\"madam\" unless the user wrote it).
 - MAXIMUM 3 physical actions total across the whole video. If the user listed more actions, keep only the 3 most important ones (always keep the dialogue moment).
-- Dialogue maximum 12 words. Write it as: the person looks directly into the camera and says exactly: \"...\" - and keep the user's words VERBATIM, never changed, translated or shortened.
+- Dialogue maximum 12 words. Write it as: [character] looks directly into the camera and says exactly: \"...\" - and keep the user's words VERBATIM, never changed, translated or shortened.
 - One simple camera instruction only (e.g., static medium shot, or slow push-in). No complex camera moves.
 
 Rules:
